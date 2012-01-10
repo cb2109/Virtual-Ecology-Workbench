@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -23,12 +22,13 @@ import VEW.XMLCompiler.ANTLR.BACONCompiler;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
 import VEW.XMLCompiler.DependencyChecker.DependantMetaData;
+import VEW.XMLCompiler.DependencyChecker.Dependency;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public class FullModelTest {
 
 	private static final String SEPARATOR = File.separator;
-	private static final String MODELRESOURCE = "test"+ SEPARATOR + "resources" + SEPARATOR +"ModelTree"+SEPARATOR+"Test"+SEPARATOR+"5"+SEPARATOR;
+	private static final String MODELRESOURCE = "test"+ SEPARATOR + "resources" + SEPARATOR +"ModelTree"+SEPARATOR+"LERM-ES"+SEPARATOR+"4"+SEPARATOR;
 	private OrderingAgent o;
 	
 	@Before
@@ -72,9 +72,20 @@ public class FullModelTest {
 	@Test
 	public void test() {
 	
-		o.reorder();
+		if (!o.reorder()) {
+			System.out.println("Loops detected");
+			for (Collection<Dependency<Function>> loop : o.getFunctionLoops()) {
+				for (Dependency<Function> dep : loop) {
+					System.out.print(dep.getDependent1().getName() + ", ");
+				}
+				System.out.println("\n");
+			}
+			
+			return;
+		}
 		
 		Set<Entry<ConstructedASTree, ArrayList<RuleNode>>> rules = o.getFunctionOrder().entrySet();
+		
 		
 		for (Entry<ConstructedASTree, ArrayList<RuleNode>> rule : rules) {
 			for (RuleNode r : rule.getValue()) {
@@ -82,6 +93,11 @@ public class FullModelTest {
 			}
 			
 			System.out.println();
+		}
+		
+		System.out.println("\nOrder of functions:");
+		for (Function f : o.getOrdering()) {
+			System.out.println(f.getName());
 		}
 			
 		

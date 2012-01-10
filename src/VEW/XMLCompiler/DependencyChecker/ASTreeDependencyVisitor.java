@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import VEW.Planktonica2.Model.Function;
+import VEW.Planktonica2.Model.Local;
 import VEW.Planktonica2.Model.VariableType;
+import VEW.Planktonica2.Model.VarietyLocal;
 import VEW.XMLCompiler.ASTNodes.ASTreeVisitor;
 import VEW.XMLCompiler.ASTNodes.AssignListNode;
 import VEW.XMLCompiler.ASTNodes.AssignNode;
@@ -84,9 +86,17 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	@Override
 	public void visit(IdNode idNode) {
 		
+		VariableType variable = idNode.getVariableType();
+		
+		// ignore non-Local variables
+		if (!(variable instanceof Local || (idNode.getVariableType() instanceof VarietyLocal))) {
+			return;
+		}
+		
 		// checks for read before write
 		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(idNode.getVariableType());
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
+		
 		if (nodesWrittenTo != null) {
 			for (DependantMetaData<RuleNode> r : nodesWrittenTo) {
 				inTreeDependencies.add(new Dependency<DependantMetaData<RuleNode>> (r, curDependant));
@@ -232,6 +242,9 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	 */
 	@Override
 	public void visit(VarHistNode varHistNode) {
+		
+		
+		
 		return;
 	}
 

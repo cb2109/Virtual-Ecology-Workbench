@@ -33,7 +33,11 @@ public class DependencyGraphGenerator <D extends HasDependency> {
 	 */
 	public Collection<Representative<D>> createRepresentatives(Collection<D> dependants, Collection<Dependency<D>> dependencies) {
 		
-		Collection<Representative<D>> representatives = new ArrayList<Representative<D>> ();		
+		Collection<Representative<D>> representatives = new ArrayList<Representative<D>> ();
+		
+		for (D dep : dependants) {
+			representatives.add(new Representative<D> (dep));
+		}
 		
 		for (Representative<D> rep : representatives) {
 			for (Dependency<D> dep : dependencies) {

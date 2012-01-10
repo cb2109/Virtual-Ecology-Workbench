@@ -29,7 +29,9 @@ public abstract class DependencyCheck <D extends HasDependency> {
 	 */
 	public void performChecks() {
 		this.internalCheckDependencies();
-		next.performChecks();
+		if (next != null) {
+			next.performChecks();
+		}
 	}
 	
 	public void setDependencies(Collection<Dependency<D>> dependencies) {
@@ -52,6 +54,7 @@ public abstract class DependencyCheck <D extends HasDependency> {
 	}
 	
 	public Collection<Collection<Dependency<D>>> getResults() {
+		
 		Collection<Collection<Dependency<D>>> all = new ArrayList<Collection<Dependency<D>>> ();
 		all.addAll(this.result);
 		
