@@ -32,6 +32,8 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 	
 	private String source_file_path;
 	
+	
+	private List<String> warnings;
 	private XMLTag baseTag;
 
 	
@@ -39,13 +41,15 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 		this.source_file_path = get_path(file_path);
 		this.availableStages = stages;
 		this.parent = parent;
-		this.calledIn = new ArrayList<Stage> (); 
+		this.calledIn = new ArrayList<Stage> ();
+		this.warnings = new ArrayList<String>();
 	}
 
 	public Function(String file_path, Catagory parent) {
 		this.source_file_path = get_path(file_path);
 		this.availableStages = null;
 		this.parent = parent;
+		this.warnings = new ArrayList<String>();
 	}
 
 	public Function(String file_path, String name, Catagory parent) {
@@ -55,6 +59,7 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 		this.name = name;
 		this.calledIn = new ArrayList<Stage>();
 		this.availableStages = new ArrayList<Stage>();
+		this.warnings = new ArrayList<String>();
 	}
 	
 	@Override
@@ -79,7 +84,6 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 					calledIn.add(s);
 					t.removeFromParent();
 				}
-				//TODO: if stage does not exist thrown an exception
 			}
 		}	
 		
@@ -272,31 +276,34 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 
 	@Override
 	public XMLTag buildToXML() throws XMLWriteBackException {
-		if (baseTag == null) {
-			baseTag = new XMLTag("function");
+		XMLTag newTag = new XMLTag("function");
+		if (baseTag != null) {
+			newTag.addTags(baseTag.getTags());
 		}
-		baseTag.addTag("name", name);
+		newTag.addTag("name", name);
 		Iterator<Stage> stageIter = calledIn.iterator();
 		while (stageIter.hasNext()) {
 			Stage stage = stageIter.next();
-			baseTag.addTag(new XMLTag("calledin", stage.getName()));
+			newTag.addTag(new XMLTag("calledin", stage.getName()));
 		}
 		List<XMLTag> equationTags;
 		try {
 			equationTags = compileFunction();
-			for (XMLTag eqTag : equationTags) {
-				baseTag.addTag(eqTag);
-			}
-			if (archiveName != null)
-				baseTag.addTag(new XMLTag("archivename", archiveName));
-			if (comment != null)
-				baseTag.addTag(new XMLTag("comment", comment));
-			if (author != null)
-				baseTag.addTag(new XMLTag("author", author));
 		} catch (CompilerException e) {
 			throw new XMLWriteBackException(e);
 		}
-		return baseTag;
+		for (XMLTag eqTag : equationTags) {
+			newTag.addTag(eqTag);
+		}
+		if (archiveName != null)
+			newTag.addTag(new XMLTag("archivename", archiveName));
+		if (comment != null)
+			newTag.addTag(new XMLTag("comment", comment));
+		if (author != null)
+			newTag.addTag(new XMLTag("author", author));
+		parent.addWarnings(warnings);
+		warnings = new ArrayList<String>();
+		return newTag;
 	}
 
 	@Override
@@ -344,4 +351,7 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 		return parent;
 	}
 	
+	public void addWarnings(List<String> warnings) {
+		this.warnings.addAll(warnings);
+	}
 }

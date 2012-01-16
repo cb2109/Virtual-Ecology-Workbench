@@ -1,7 +1,5 @@
 package VEW.XMLCompiler.ASTNodes;
 
-import java.util.ArrayList;
-
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Type;
 import VEW.Planktonica2.Model.VarietyType;
@@ -48,14 +46,6 @@ public class NegNode extends ExprNode {
 		
 		negExpr.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
-		
-	}
-
-	
-	@Override
-	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
-		
-		return null;
 		
 	}
 

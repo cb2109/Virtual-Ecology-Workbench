@@ -1,7 +1,5 @@
 package VEW.XMLCompiler.ASTNodes;
 
-import java.util.ArrayList;
-
 import VEW.Planktonica2.Model.Catagory;
 
 public class BooleanNotOpNode extends BExprNode {
@@ -40,13 +38,6 @@ public class BooleanNotOpNode extends BExprNode {
 		
 	}
 
-	
-	@Override
-	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
-		
-		return null;
-		
-	}
 
 	
 }

@@ -44,11 +44,4 @@ public class NumNode extends ExprNode {
 	}
 
 	
-	@Override
-	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
-		
-		return null;
-		
-	}
-
 }

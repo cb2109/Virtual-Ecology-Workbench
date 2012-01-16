@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 
+import VEW.Common.Pair;
 import VEW.Common.XML.XMLFile;
 import VEW.Common.XML.XMLTag;
 import VEW.Planktonica2.Display;
@@ -26,6 +27,8 @@ import VEW.Planktonica2.Model.Chemical;
 import VEW.Planktonica2.Model.Function;
 import VEW.Planktonica2.Model.FunctionalGroup;
 import VEW.Planktonica2.Model.Model;
+import VEW.Planktonica2.Model.Unit;
+import VEW.Planktonica2.Model.UnitChecker;
 import VEW.Planktonica2.Model.VariableType;
 import VEW.Planktonica2.Model.XMLWriteBackException;
 import VEW.XMLCompiler.ANTLR.ANTLRParser;
@@ -136,12 +139,14 @@ public abstract class VEWController extends Observable {
 	public abstract Collection<Catagory> getCatagories();
 
 	
-	public Collection<String> writeBackToXMLFile() {
+	public Pair<ArrayList<String>, ArrayList<String>> writeBackToXMLFile() {
 		XMLTag tag = null;
 		ArrayList<String> exceptions = new ArrayList<String>();
+		ArrayList<String> warnings = new ArrayList<String>();
+		Pair<ArrayList<String>, ArrayList<String>> results = 
+				new Pair<ArrayList<String>, ArrayList<String>>(exceptions, warnings);
 		try {
 			tag = model.buildToXML();
-			//TODO make sure multiple compiler errors are collated
 		}
 		catch (XMLWriteBackException ex) {
 			for (CompilerException cex : ex.getCompilerExceptions()) {
@@ -150,18 +155,17 @@ public abstract class VEWController extends Observable {
 							+ ": " + fex.getError());
 				}
 			}
-			return exceptions;
+			return results;
 		}
 		if (!(tag instanceof XMLFile)) {
 			exceptions.add("The method was not constructed with a proper XMLFile.");
-			return exceptions;
+			return results;
 		}
+		warnings.addAll(model.getWarnings());
+		model.clearWarnings();
 		XMLFile xmlFile = (XMLFile) tag;
-		//String fileName = xmlFile.getFileName();
-		//String newName = fileName.substring(0, fileName.lastIndexOf('\\') + 1) + "testFile.xml";
-		//xmlFile.setFileName(newName);
 		xmlFile.write();
-		return exceptions;
+		return results;
 	}
 
 
@@ -229,14 +233,14 @@ public abstract class VEWController extends Observable {
 	
 	public abstract void addCategoryToModel(String name);
 
-	public void addFunction(Component display, String name) {
+	public boolean addFunction(Component display, String name) {
 		if (this.getSelectedCatagory() == null || !validate_name(display,name))
-			return;
+			return false;
 		// Check name uniqueness
 		for (Function f : this.getSelectedCatagory().getFunctions()) {
 			if (f.getName().equals(name)) {
 				JOptionPane.showMessageDialog(display, "A function with that name already exists");
-				return;
+				return false;
 			}
 		}
 		Catagory c = (Catagory) this.getSelectedCatagory();
@@ -244,6 +248,7 @@ public abstract class VEWController extends Observable {
 		addSourceFile(model.getFilePath() + c.getName() + "\\", name);
 		this.setChanged();
 		this.notifyObservers(new NewFunctionEvent(c,f));
+		return true;
 	}
 
 	private void addSourceFile(String parentPath, String name) {
@@ -266,17 +271,7 @@ public abstract class VEWController extends Observable {
 		}
 	}
 
-	public void rename_chemical(Chemical c, String name) {
-		Chemical newchem = new Chemical(name,c.getFilePath());
-		newchem.setFunctions(c.getFunctions());
-		newchem.setSpectrum(c.getSpectrum());
-		newchem.setPigment(c.hasPigment());
-		newchem.setValue(c.getValue());
-		model.removeChemical(c);
-		model.addChemical(newchem);
-		this.setChanged();
-		this.notifyObservers(new NewCategoryEvent(c));
-	}
+	public void rename_chemical(Chemical c, String name) {}
 	
 	public Collection<String> get_chemical_names() {
 		ArrayList<String> names = new ArrayList<String>();
@@ -336,6 +331,7 @@ public abstract class VEWController extends Observable {
 			} finally {
 				if (i instanceof Chemical) {
 					model.removeChemical((Chemical)i);
+					chemical_delete();
 				} else {
 					model.removeFunctionalGroup((FunctionalGroup)i);
 				}
@@ -346,6 +342,8 @@ public abstract class VEWController extends Observable {
 		}
 	}
 
+	public void chemical_delete() {}
+	
 	public void deleteFunction(Display d) {
 		// Check the user really wants to delete this function
 		int choice = JOptionPane.showOptionDialog(d, "Are you sure you want to delete this function?",
@@ -435,7 +433,7 @@ public abstract class VEWController extends Observable {
 				for (String s : fg.get_params()) {
 					VariableType v = fg.checkParameterTable(s);
 					if (v != null) {
-						latex += "\t\t" + v.getName() + " & " + v.getDesc() + " & $" 
+						latex += "\t\t$" + v.getName() + "$ & $" + v.getDesc().replaceAll(" ", "\\;") + "$ & $" 
 							+ v.getValue() + "$ & $" + v.get_formatted_units() + "$ \\\\ \\hline \n";
 					}
 				}
@@ -451,7 +449,7 @@ public abstract class VEWController extends Observable {
 	}
 
 	private String source_latex(Function f) {
-		String latex = f.getName() + " \\\\ \n";
+		String latex = f.getName().replaceAll("_", "\\_") + " \\\\ \n";
 		String fpath = f.getSource_code() + "\\" + f.getParent().getName() 
 			+ "\\" + f.getName() + ".bacon";
 		try {
@@ -474,7 +472,7 @@ public abstract class VEWController extends Observable {
 			ANTLRParser p = new ANTLRParser (file_text);
 			ConstructedASTree ct = p.getAST();
 			if (ct.getTree() != null) 
-				latex += "$" + ct.getTree().generateLatex() + "$ \n";
+				latex += "$" + ct.getTree().generateLatex() + "$ \n\n";
 		} catch (Exception e) {
 			latex += "{\\if Source not found} \\\\ \n";
 		}
@@ -482,6 +480,8 @@ public abstract class VEWController extends Observable {
 	}
 	
 	public boolean validate_name(Component display, String name) {
+		if (name == null)
+			return false;
 		// Check it contains no disallowed characters
 		char[] chars = name.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
@@ -620,7 +620,72 @@ public abstract class VEWController extends Observable {
 					// File has been altered...
 					return;
 				}
+			} else if (line.startsWith("Side Pane - ")) {
+				try {
+					line = line.substring("Side Pane - ".length(),line.length());
+					DisplayOptions.getOptions().SIDE_PANEL_SIZE = Integer.parseInt(line);
+				} catch (Exception e) {
+					// File has been altered...
+					return;
+				}
+			}  else if (line.startsWith("Convert Types - ")) {
+				if (line.endsWith("1")) {
+					// Attempt type conversions based on equivalence rules
+					DisplayOptions.getOptions().ATTEMPT_TYPE_CONVERSION = true;
+				} else {
+					DisplayOptions.getOptions().ATTEMPT_TYPE_CONVERSION = false;
+				}
+			} else if (line.startsWith("Scale Types - ")) {
+				if (line.endsWith("1")) {
+					// Attempt type conversions based on equivalence rules
+					DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING = true;
+				} else {
+					DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING = false;
+				}
+			} else if (line.startsWith("<unit>")) {
+				addUnitEquivalence(line);
 			}
+		}
+
+		private void addUnitEquivalence(String line) {
+			String units1 = line.substring("<unit>".length(), line.indexOf("</unit>"));
+			String units2 = line.substring(line.lastIndexOf("<unit>") + "<unit>".length(),
+					line.lastIndexOf("</unit>"));
+			String scale = line.substring(line.lastIndexOf("<scale>") + "<scale>".length(),
+					line.lastIndexOf("</scale>"));
+			//System.out.println(units1 + " ---" + scale + "--> " + units2);
+			if (units1 != null && units2 != null) {
+				ArrayList<Unit> first = parse_units(units1);
+				ArrayList<Unit> second = parse_units(units2);
+				float sf = Float.parseFloat(scale);
+				UnitChecker.getUnitChecker().add_equivalence(first, sf, second);
+			}
+		}
+
+		private ArrayList<Unit> parse_units(String units1) {
+			ArrayList<Unit> units = new ArrayList<Unit>();
+			String [] individualUnits = units1.split("(,)");
+			if (individualUnits.length % 3 == 0) {
+				String [] unit = new String [3];
+				int offset = 0;
+				for (int i = 0; i < individualUnits.length ; i++) {
+					unit[offset] = individualUnits[i];
+					if (offset >= 2) {
+						if (unit[0].equals("null")) {
+							unit[0] = "0";
+						} else if (unit[2].equals("null")) {
+							unit[2] = "0";
+						}
+						Unit u = new Unit (Integer.valueOf(unit[0]), unit[1], Integer.valueOf(unit[2]));
+						units.add(u);
+						offset = 0;
+						unit = new String [3];
+					} else {
+						offset++;
+					}
+				}				
+			}
+			return units;
 		}
 
 }

@@ -1,7 +1,6 @@
 package VEW.XMLCompiler.ASTNodes;
 
-import java.util.ArrayList;
-
+import VEW.Planktonica2.DisplayOptions;
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Type;
 import VEW.Planktonica2.Model.UnitChecker;
@@ -23,6 +22,8 @@ public class IfExprNode extends ExprNode {
 	
 	@Override
 	public void check(Catagory enclosingCategory, ConstructedASTree enclosingTree) {
+		//if (conditionExpr == null)
+			//return;
 		conditionExpr.check(enclosingCategory, enclosingTree);
 		thenExpr.check(enclosingCategory, enclosingTree);
 		elseExpr.check(enclosingCategory, enclosingTree);
@@ -31,16 +32,20 @@ public class IfExprNode extends ExprNode {
 												conditionExpr.getBExprType()));
 		} catch (BACONCompilerException e) {
 			enclosingTree.addSemanticException(e);
+			setExprType(thenExpr.getExprType());
 		} finally {
-			if (!UnitChecker.getUnitChecker().CheckUnitCompatability(thenExpr.getUnits(),
-					elseExpr.getUnits())) {
+			if (UnitChecker.getUnitChecker().CheckUnitCompatability(thenExpr.getUnits(),
+					elseExpr.getUnits()) == 0) {
 				enclosingTree.addWarning("Conditional returning two different unit types on line "
 					+ line_number);
 				this.units = UnitChecker.null_collection;
-			} else {
+			} else if (UnitChecker.getUnitChecker().CheckUnitCompatability(thenExpr.getUnits(),
+					elseExpr.getUnits()) == 1) { 
 				this.units = UnitChecker.getUnitChecker().add_units(thenExpr.getUnits(), elseExpr.getUnits());
+			} else {
+				// Use units of then expr
+				this.units = thenExpr.getUnits();
 			}
-			setExprType(thenExpr.getExprType());
 		}
 	}
 	
@@ -88,6 +93,14 @@ public class IfExprNode extends ExprNode {
 
 	@Override
 	public String generateXML() {
+		if (DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING) {
+			float scale = UnitChecker.getUnitChecker().CheckUnitCompatability(thenExpr.getUnits(),
+					elseExpr.getUnits());
+			if (scale != 0 && scale != 1) {
+				return "\\conditional{" + conditionExpr.generateXML() + "," + thenExpr.generateXML()
+				 + ",\\mul{" + scale + "," + elseExpr.generateXML() + "}}";
+			}
+		}
 		return "\\conditional{" + conditionExpr.generateXML() + "," + thenExpr.generateXML()
 		 + "," + elseExpr.generateXML() + "}";
 	}
@@ -103,6 +116,14 @@ public class IfExprNode extends ExprNode {
 		String elseexp = "???";
 		if (elseExpr != null)
 			elseexp = elseExpr.generateLatex();
+		if (DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING) {
+			float scale = UnitChecker.getUnitChecker().CheckUnitCompatability(thenExpr.getUnits(),
+					elseExpr.getUnits());
+			if (scale != 0 && scale != 1) {
+				return "if\\;(" + cond + ")\\;then\\;(" + then
+				 + ")\\;else\\;(" + scale + "*" + elseexp + ")";
+			}
+		}
 		return "if\\;(" + cond + ")\\;then\\;(" + then
 		 + ")\\;else\\;(" + elseexp + ")";
 	}
@@ -115,14 +136,6 @@ public class IfExprNode extends ExprNode {
 		thenExpr.acceptDependencyCheckVisitor(visitor);
 		elseExpr.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
-		
-	}
-
-	
-	@Override
-	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
-		
-		return null;
 		
 	}
 

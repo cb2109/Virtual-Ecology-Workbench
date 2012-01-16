@@ -44,6 +44,10 @@ public class BACONCompiler {
 			throw new CompilerException(function, tree.getExceptions());
 		}
 		
+		if (tree.hasWarnings()) {
+			function.addWarnings(tree.getWarnings());
+		}
+		
 		List<BACONCompilerException> exceptions = checkForRWDependency(tree);
 		if (!exceptions.isEmpty()) {
 			throw new CompilerException(function, exceptions);

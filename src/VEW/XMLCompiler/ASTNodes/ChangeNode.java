@@ -115,12 +115,12 @@ public class ChangeNode extends RuleNode {
 			return "\\not{" + previousConds.get(0).generateXML() + "}";
 		}
 		String conditionalString = "\\and{";
-		for (int n = 0; n < previousConds.size() - 1; n++) {
+		for (int n = 0; n < previousConds.size()-1; n++) {
 			BExprNode prevCond = previousConds.get(n);
 			conditionalString += "\\not{" + prevCond.generateXML() + "},";
 		}
 		BExprNode lastCond = previousConds.get(previousConds.size()-1);
-		return conditionalString + lastCond.generateXML() + "}";
+		return conditionalString + "\\not{" + lastCond.generateXML() + "}" + "}";
 		
 	}
 	
@@ -144,8 +144,13 @@ public class ChangeNode extends RuleNode {
 		func += "\\begin{cases}";
 		for (Pair<BExprNode,IdNode> p : this.changeStatements) {
 			func += p.getSecond().generateLatex();
-			func += " \\; \\; \\; if \\; \\;";
-			func += p.getFirst().generateLatex();
+			func += " \\; \\; \\; ";
+			if (p.getFirst() != null) {
+				func += "if \\; \\;" + p.getFirst().generateLatex();
+			}
+			else {
+				func += "otherwise \\; \\;";
+			}
 			func += " \\\\ ";
 		}
 		func += "\\end{cases}";
