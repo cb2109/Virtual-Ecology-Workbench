@@ -166,5 +166,13 @@ public class ChangeNode extends RuleNode {
 		visitor.visit(this);
 		
 	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
+		
+	}
 	
 }

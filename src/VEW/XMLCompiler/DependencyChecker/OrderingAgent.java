@@ -3,6 +3,8 @@ package VEW.XMLCompiler.DependencyChecker;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import VEW.Planktonica2.Model.Function;
 import VEW.Planktonica2.Model.Stage;
@@ -21,16 +23,18 @@ public class OrderingAgent {
 
 	private Collection<DependantMetaData<ConstructedASTree>> trees;
 	private Collection<MultipleWriteException> multipleWrite;
+	private Collection<FunctionReorderingException> functionLoops;
 	private HashMap<ConstructedASTree, ArrayList<RuleNode>> functionOrder;
-	private Collection<Collection<Dependency<Function>>> functionLoops;
-	
-
-
-
-	
-
 	private ArrayList<Function> ordering;
 
+	public OrderingAgent() {
+		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
+		this.multipleWrite = new ArrayList<MultipleWriteException>();
+		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
+		this.ordering = new ArrayList<Function> ();
+		this.functionLoops = new ArrayList<FunctionReorderingException> ();
+	}
+	
 	/**
 	 * 
 	 * @param m the model to be checked for consistency.
@@ -41,12 +45,44 @@ public class OrderingAgent {
 		this.multipleWrite = new ArrayList<MultipleWriteException>();
 		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
 		this.ordering = new ArrayList<Function> ();
-		this.functionLoops = new ArrayList<Collection<Dependency<Function>>> ();
+		this.functionLoops = new ArrayList<FunctionReorderingException> ();
 	}
 
+	public OrderingAgent(Map<Function, ConstructedASTree> trees) {
+		
+		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
+		this.multipleWrite = new ArrayList<MultipleWriteException>();
+		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
+		this.ordering = new ArrayList<Function> ();
+		this.functionLoops = new ArrayList<FunctionReorderingException> ();
+		
+		for (Entry<Function, ConstructedASTree> tree : trees.entrySet()) {
+			
+			this.trees.add(new DependantMetaData<ConstructedASTree> (tree.getValue(), tree.getKey()));
+			
+		}
+	}
 	
-	
+	public OrderingAgent(Function function, ConstructedASTree tree) {
+		
+		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
+		this.multipleWrite = new ArrayList<MultipleWriteException>();
+		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
+		this.ordering = new ArrayList<Function> ();
+		this.functionLoops = new ArrayList<FunctionReorderingException> ();
+		
+		
+		trees.add(new DependantMetaData<ConstructedASTree> (tree, function));
+	}
+
+
+
 	public boolean reorder () {
+		
+		return (reorderNodes() ? reorderFunctions() : false);
+	}
+	
+	public boolean reorderNodes() {
 		
 		// reorder each Function
 		for (DependantMetaData<ConstructedASTree> data : trees) {
@@ -55,15 +91,11 @@ public class OrderingAgent {
 			}
 		}
 		
-		// reorder Functions
-		return reorderFunctions();
+		return true;
 	}
-
-	
-
 	
 	
-	private Collection<Dependency<DependantMetaData<RuleNode>>> calculateDependencies(DependantMetaData<ConstructedASTree> tree) {
+	public Collection<Dependency<DependantMetaData<RuleNode>>> calculateDependencies(DependantMetaData<ConstructedASTree> tree) {
 		
 		ASTreeDependencyVisitor visitor = new ASTreeDependencyVisitor(tree.getParent());
 		tree.getNode().checkASTree(visitor);
@@ -136,7 +168,7 @@ public class OrderingAgent {
 	 * Reorder Functions in group
 	 */
 	
-	private boolean reorderFunctions() {
+	public boolean reorderFunctions() {
 		// group by stage called In and work out dependencies in between stage related things
 		Collection<Collection<DependantMetaData<ConstructedASTree>>> groups = groupTreesByStage();
 		
@@ -231,7 +263,15 @@ public class OrderingAgent {
 		
 		
 		if (!cycleChecker.getResults().isEmpty()) {
-			this.functionLoops = cycleChecker.getResults();
+			Collection<Collection<Dependency<Function>>> loops = cycleChecker.getResults();
+			for (Collection<Dependency<Function>> loop : loops) {
+				Collection<Function> funcLoop = new ArrayList<Function> (loop.size());
+				for (Dependency<Function> dep : loop) {
+					funcLoop.add(dep.getDependent1());
+				}
+				
+				this.functionLoops.add(new FunctionReorderingException(funcLoop));
+			}
 			
 		}
 
@@ -291,62 +331,6 @@ public class OrderingAgent {
 		return true;
 		
 	}
-	
-	/*private boolean fillOrderFunctions(ConstructedASTree parent, Collection<Dependency<DependantMetaData<ConstructedASTree>>> tree) {
-		
-		// generate graph
-		DependencyGraphGenerator<DependantMetaData<ConstructedASTree>> gen = new DependencyGraphGenerator<DependantMetaData<ConstructedASTree>> ();
-		Collection<Representative<DependantMetaData<ConstructedASTree>>> graph = gen.createRepresentatives(tree);
-
-		// traverse graph from every other point
-		ArrayList<Representative<DependantMetaData<ConstructedASTree>>> order = new ArrayList<Representative<DependantMetaData<ConstructedASTree>>> ();
-		// add all to order
-		for (Representative<DependantMetaData<RuleNode>> node : graph) {
-			order.add(node);
-		}
-
-		boolean changed = true;
-		int retries = order.size()*order.size();
-		if (retries == 0) {
-			return true;
-		}
-		while (changed) {
-			changed = false;
-			for (int nodeIndex = 0; nodeIndex < order.size(); nodeIndex++) {
-				int currentIndex = nodeIndex;
-				Representative<DependantMetaData<RuleNode>> curNode = order.get(nodeIndex);
-				for (Representative<DependantMetaData<RuleNode>> child : curNode.getChildren()) {
-					int childIndex = order.indexOf(child);
-					if (childIndex < currentIndex) {
-						// move parent behind child and set changed to true
-						// removes node from current index
-						order.remove(currentIndex);
-						// adds curNode in at child (which moves child along by one)
-						order.add(childIndex, curNode);
-						// updates position of currentNode!
-						currentIndex = childIndex;
-						changed = true;
-					}
-				}
-			}
-
-			if (retries <= 0) {
-				return false;
-			}
-			retries--;
-		}
-
-		// remove representatives and metaData
-		ArrayList<RuleNode> output = new ArrayList<RuleNode> (order.size());
-		for (Representative<DependantMetaData<RuleNode>> node : order) {
-			output.add(node.getRepresentedObject().getNode());
-		}
-		
-		this.functionOrder.put(parent, output);
-
-		return true;
-
-	}*/
 
 	
 	/*
@@ -359,7 +343,17 @@ public class OrderingAgent {
 	public void setTrees(Collection<DependantMetaData<ConstructedASTree>> trees) {
 		this.trees = trees;
 	}
-
+	
+	public void setTrees(Map<Function, ConstructedASTree> trees) {
+		
+		for (Entry<Function, ConstructedASTree> tree : trees.entrySet()) {
+			
+			this.trees.add(new DependantMetaData<ConstructedASTree> (tree.getValue(), tree.getKey()));
+			
+		}
+		
+	}
+	
 	public Collection<MultipleWriteException> getMultipleWrite() {
 		return multipleWrite;
 	}
@@ -372,7 +366,11 @@ public class OrderingAgent {
 		return ordering;
 	}
 	
-	public Collection<Collection<Dependency<Function>>> getFunctionLoops() {
+	public Collection<FunctionReorderingException> getFunctionLoops() {
 		return functionLoops;
 	}
+
+	
+
+	
 }

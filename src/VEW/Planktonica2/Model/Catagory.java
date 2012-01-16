@@ -2,12 +2,17 @@ package VEW.Planktonica2.Model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import VEW.Common.XML.XMLTag;
 import VEW.Planktonica2.ControllerStructure.SelectableItem;
+import VEW.XMLCompiler.ANTLR.BACONCompiler;
 import VEW.XMLCompiler.ASTNodes.AmbientVariableTables;
+import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.SymbolTable;
+import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToXML {
 	
@@ -284,12 +289,21 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 	}
 	
 	public XMLTag buildToXML() throws XMLWriteBackException{
+		
+		OrderingAgent o = new OrderingAgent();
+		if (orderFunctions(o)) {
+			if (functions.containsAll(o.getOrdering())) {
+				functions = o.getOrdering();
+			}
+		}
+		
 		XMLWriteBackException collectedExceptions = new XMLWriteBackException();
 		XMLTag newTag = new XMLTag("placeholder");
 		if (baseTag != null) {
 			newTag.addTags(baseTag.getTags());
 		}
 		newTag.addTag(new XMLTag("name", name));
+		
 		for(Function f: functions) {
 			try {
 				newTag.addTag(f.buildToXML());
@@ -312,6 +326,28 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 		return newTag;
 	}
 	
+	private boolean orderFunctions(OrderingAgent o) {
+		
+		Map<Function, ConstructedASTree> trees = new HashMap<Function, ConstructedASTree> ();
+		for (Function f : functions) {
+			BACONCompiler comp = new BACONCompiler(f, f.getSource_code());
+			ConstructedASTree t = comp.getTree();
+			if (t != null) {
+				trees.put(f, comp.getTree());
+			}
+			
+		}
+		
+		o.setTrees(trees);
+		
+		if (!trees.isEmpty()) {
+			return false;
+		}
+		
+		return o.reorderFunctions();
+		
+	}
+
 	private <V extends VariableType> void buildVariableTableToXML(XMLTag tag, SymbolTable<V> table) throws XMLWriteBackException {
 		Collection<V> vals = table.values();
 		Iterator<V> iter = vals.iterator();

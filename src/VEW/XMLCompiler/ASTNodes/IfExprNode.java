@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Type;
-import VEW.Planktonica2.Model.Unit;
 import VEW.Planktonica2.Model.UnitChecker;
 import VEW.Planktonica2.Model.VarietyType;
 
@@ -116,6 +115,14 @@ public class IfExprNode extends ExprNode {
 		thenExpr.acceptDependencyCheckVisitor(visitor);
 		elseExpr.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 

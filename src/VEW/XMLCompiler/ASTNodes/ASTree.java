@@ -1,5 +1,7 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
+
 import VEW.Planktonica2.Model.Catagory;
 
 public abstract class ASTree {
@@ -21,4 +23,12 @@ public abstract class ASTree {
 	public abstract String generateLatex();
 	
 	public abstract void acceptDependencyCheckVisitor(ASTreeVisitor visitor);
+
+	/**
+	 * Rearanges given rules in the order given. 
+	 * 
+	 * @param order the order in which the rule nodes will now be ordered
+	 * @return the top node in the tree
+	 */
+	public abstract ASTree rearrangeRules(ArrayList<RuleNode> order);
 }

@@ -1,6 +1,7 @@
 package VEW.XMLCompiler.DependencyChecker;
 
 import VEW.Planktonica2.Model.VariableType;
+import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
 
 /**
@@ -9,7 +10,7 @@ import VEW.XMLCompiler.ASTNodes.RuleNode;
  * @author Chris Bates
  *
  */
-public class MultipleWriteException extends Exception {
+public class MultipleWriteException extends BACONCompilerException {
 
 	private static final long serialVersionUID = 2492870850363362822L;
 	
@@ -18,7 +19,7 @@ public class MultipleWriteException extends Exception {
 	private VariableType affectedVar;
 	
 	public MultipleWriteException(DependantMetaData<RuleNode> firstWriteRule, DependantMetaData<RuleNode> secondWriteRule, VariableType affectedVar, String message) {
-		super(message);
+		super();
 		this.rule1 = firstWriteRule;
 		this.rule2 = secondWriteRule;
 		this.affectedVar = affectedVar;
@@ -44,4 +45,23 @@ public class MultipleWriteException extends Exception {
 		return this.affectedVar;
 	}
 
+	@Override
+	public String toString() {
+		
+		String s = "You have written to the variable " + affectedVar.getName() + " multiple times in ";
+		
+		if (rule1.getParent() != rule2.getParent()) {
+			
+			s += rule1.getParent().getName() + " and " + rule2.getParent().getName() + ".\n";
+			
+		} else {
+			
+			s += rule1.getParent().getName() + ".\n";
+			
+		}
+		
+		return s;
+		
+	}
+	
 }

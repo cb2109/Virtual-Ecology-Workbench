@@ -43,4 +43,12 @@ public class NumNode extends ExprNode {
 		visitor.visit(this);
 	}
 
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
+		
+	}
+
 }

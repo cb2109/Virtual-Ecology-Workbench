@@ -64,6 +64,13 @@ public class AssignListNode extends ASTree {
 		visitor.visit(this);
 		
 	}
+
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
+		
+	}
 	
 	
 

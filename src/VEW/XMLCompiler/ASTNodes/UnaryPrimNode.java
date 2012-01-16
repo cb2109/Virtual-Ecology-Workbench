@@ -6,7 +6,6 @@ import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Type;
 import VEW.Planktonica2.Model.Unit;
 import VEW.Planktonica2.Model.UnitChecker;
-import VEW.Planktonica2.Model.VarietyType;
 
 public class UnaryPrimNode extends ExprNode {
 
@@ -115,14 +114,6 @@ public class UnaryPrimNode extends ExprNode {
 		}
 	}
 	
-/*
->>>>>>> 222e1b3e2c4736782da4ca167c65441f455547de
-	private Type checkCompatibility(Type argType) {
-		if (argType instanceof VarietyType) {
-			return argType;
-		}
-		return argType;
-	} */
 
 	@Override
 	public String generateXML() {
@@ -190,6 +181,14 @@ public class UnaryPrimNode extends ExprNode {
 		
 		argument.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 

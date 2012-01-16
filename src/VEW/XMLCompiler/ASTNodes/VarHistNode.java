@@ -1,5 +1,7 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
+
 import VEW.Planktonica2.Model.Catagory;
 
 public class VarHistNode extends ExprNode {
@@ -66,6 +68,14 @@ public class VarHistNode extends ExprNode {
 
 	public void setExpression(ExprNode expression) {
 		this.expression = expression;
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
+		
 	}
 	
 	

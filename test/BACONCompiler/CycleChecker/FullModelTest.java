@@ -22,7 +22,7 @@ import VEW.XMLCompiler.ANTLR.BACONCompiler;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
 import VEW.XMLCompiler.DependencyChecker.DependantMetaData;
-import VEW.XMLCompiler.DependencyChecker.Dependency;
+import VEW.XMLCompiler.DependencyChecker.FunctionReorderingException;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public class FullModelTest {
@@ -74,10 +74,8 @@ public class FullModelTest {
 	
 		if (!o.reorder()) {
 			System.out.println("Loops detected");
-			for (Collection<Dependency<Function>> loop : o.getFunctionLoops()) {
-				for (Dependency<Function> dep : loop) {
-					System.out.print(dep.getDependent1().getName() + ", ");
-				}
+			for (FunctionReorderingException loop : o.getFunctionLoops()) {
+				System.out.println(loop);
 				System.out.println("\n");
 			}
 			

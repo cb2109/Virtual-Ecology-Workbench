@@ -90,4 +90,12 @@ public class IdNode extends ExprNode {
 		
 	}
 
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
+		
+	}
+
 }
