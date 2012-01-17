@@ -2,6 +2,7 @@ package VEW.XMLCompiler.DependencyChecker;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 public class DependencyGraphGenerator <D extends HasDependency> {
 	
@@ -39,9 +40,11 @@ public class DependencyGraphGenerator <D extends HasDependency> {
 			representatives.add(new Representative<D> (dep));
 		}
 		
-		for (Representative<D> rep : representatives) {
+		Iterator<Representative<D>> it = representatives.iterator();
+		while (it.hasNext()) {
+			Representative<D> rep = it.next();
 			for (Dependency<D> dep : dependencies) {
-				if (dep.getDependent1() == rep.getRepresentedObject()) {
+				if (dep.getDependent1().equals(rep.getRepresentedObject())) {
 					rep.addChild(findRepresentative(representatives, dep.getDependent2()));
 				}
 			}
@@ -64,17 +67,21 @@ public class DependencyGraphGenerator <D extends HasDependency> {
 	private Representative<D> findRepresentative(
 			Collection<Representative<D>> representatives, D dependent) {
 
-		for (Representative<D> rep : representatives) {
+		Iterator<Representative<D>> it = representatives.iterator();
+		while (it.hasNext()) {
+			Representative<D> rep = it.next();
 			if (rep.equals(dependent)) {
 				return rep;
 			}
 		}
 		
-		Representative<D> newRep = new Representative<D> (dependent);
+		return null;
+		
+		/*Representative<D> newRep = new Representative<D> (dependent);
 		
 		representatives.add(newRep);
 		
-		return newRep;
+		return newRep;*/
 	}
 	
 	/**

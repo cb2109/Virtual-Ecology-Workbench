@@ -30,7 +30,7 @@ public class FunctionReorderingException extends BACONCompilerException {
 	}
 	
 	@Override
-	public String toString() {
+	public String getError() {
 		String s = "";
 		if (message != null) {
 			s += message + "\n";
@@ -43,5 +43,4 @@ public class FunctionReorderingException extends BACONCompilerException {
 		
 		return s;
 	}
-
 }

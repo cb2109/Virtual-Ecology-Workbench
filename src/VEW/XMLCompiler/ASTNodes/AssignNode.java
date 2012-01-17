@@ -105,6 +105,9 @@ public class AssignNode extends RuleNode {
 		return assignVar;
 	}
 
+	public VariableType lookupVariableType(Catagory enclosingCategory) {
+		return identifier.lookupVariableType(enclosingCategory);
+	}
 	
 	/**
 	 * Doesnt' check the IdNode identifier.

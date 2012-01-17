@@ -84,6 +84,12 @@ public class BACONCompiler {
 		return null;
 	}
 	
+	/**
+	 * Extracts all exceptions from the ordering agent and makes a List of compiler exceptions out of it. 
+	 * 
+	 * @param o the ordering agent to extract
+	 * @return the loops and multiple write exception (on local variables) for the orderingAgent
+	 */
 	private List<BACONCompilerException> extractErrors(OrderingAgent o) {
 		List<BACONCompilerException> exceptions = new ArrayList<BACONCompilerException> ();
 		exceptions.addAll(o.getMultipleWrite());
@@ -92,6 +98,7 @@ public class BACONCompiler {
 	}
 
 	public ConstructedASTree getTree() {
+		
 		return tree;
 	}
 

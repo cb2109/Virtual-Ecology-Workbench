@@ -58,7 +58,7 @@ public class Representative <D extends HasDependency> implements HasDependency, 
 			o = ((Representative<?>) o).getRepresentedObject();
 		}
 		
-		return o == this.getRepresentedObject();
+		return o.equals(this.getRepresentedObject());
 	}
 
 	

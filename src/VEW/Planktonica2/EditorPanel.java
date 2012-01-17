@@ -47,8 +47,6 @@ import VEW.Planktonica2.UIComponents.TEXFilter;
 import VEW.XMLCompiler.ANTLR.ANTLRParser;
 import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
-import VEW.XMLCompiler.ASTNodes.SemanticCheckException;
-import VEW.XMLCompiler.ASTNodes.TreeWalkerException;
 
 public class EditorPanel extends JPanel implements Observer {
 
@@ -216,9 +214,11 @@ public class EditorPanel extends JPanel implements Observer {
 
 	private String format_errors(ConstructedASTree ct, String errors) {
 		errors += "<font color=#FF0000>";
-		for (Exception t : ct.getExceptions()) {
+		for (BACONCompilerException t : ct.getExceptions()) {
 			syntax_highlighter.flag_line(t);
-			if (t instanceof TreeWalkerException) {
+			errors += t.getError() + "\n";
+			
+			/*if (t instanceof TreeWalkerException) {
 				TreeWalkerException twe = (TreeWalkerException) t;
 				errors += twe.getError() + "\n";
 			} else if (t instanceof SemanticCheckException) {
@@ -226,7 +226,7 @@ public class EditorPanel extends JPanel implements Observer {
 				errors += sce.getError() + "\n";
 			} else {
 				errors += "Unknown error\n";
-			}
+			}*/
 		}
 		errors += "</font>\n";
 		errors = format_warnings(ct, errors);
@@ -247,7 +247,8 @@ public class EditorPanel extends JPanel implements Observer {
 		if (this.current_source == null)
 			return;
 		syntax_highlighter.clear_flags();
-		ANTLRParser p = new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()));
+		
+		ANTLRParser p = new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()), controller.getCurrentlySelectedFunction());
 		try {
 			ConstructedASTree ct = p.getAST();
 			if (ct.getExceptions().isEmpty())
@@ -283,7 +284,7 @@ public class EditorPanel extends JPanel implements Observer {
 	public void preview() {
 		if (this.current_source == null)
 			return;
-		ANTLRParser p = new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()));
+		ANTLRParser p = new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()), this.controller.getCurrentlySelectedFunction());
 		try {
 			ConstructedASTree ct = p.getAST();
 			if (ct == null || ct.getTree() == null)
@@ -492,7 +493,7 @@ public class EditorPanel extends JPanel implements Observer {
 		String expected = "";
 		ANTLRParser p = 
 			new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()).substring(0,
-					syntax.getCaretPosition()));
+					syntax.getCaretPosition()), this.controller.getCurrentlySelectedFunction());
 		try {
 			ConstructedASTree ct = p.getAST();
 			if (ct.getExceptions() != null && !ct.getExceptions().isEmpty()) {

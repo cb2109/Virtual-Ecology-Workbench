@@ -19,10 +19,10 @@ import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Function;
 import VEW.Planktonica2.Model.Model;
 import VEW.XMLCompiler.ANTLR.BACONCompiler;
+import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
 import VEW.XMLCompiler.DependencyChecker.DependantMetaData;
-import VEW.XMLCompiler.DependencyChecker.FunctionReorderingException;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public class FullModelTest {
@@ -74,7 +74,7 @@ public class FullModelTest {
 	
 		if (!o.reorder()) {
 			System.out.println("Loops detected");
-			for (FunctionReorderingException loop : o.getFunctionLoops()) {
+			for (BACONCompilerException loop : o.getFunctionLoops()) {
 				System.out.println(loop);
 				System.out.println("\n");
 			}

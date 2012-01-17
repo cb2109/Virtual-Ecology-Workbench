@@ -36,12 +36,15 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	private ReadWriteInTable<RuleNode> writtenVariables;
 	private ReadWriteInTable<RuleNode> readVariables;
 	private Collection<Dependency<DependantMetaData <RuleNode>>> inTreeDependencies;
+	private ArrayList<DependantMetaData<RuleNode>> extraRuleNodes;
 	private RuleNode currentRule;
 	private Function parentFunction;
 	private Collection<MultipleWriteException> multipleWrite;
 	
+	
 	public ASTreeDependencyVisitor(Function enclosingCatagory) {
 		this.inTreeDependencies = new ArrayList<Dependency<DependantMetaData<RuleNode>>> ();
+		this.extraRuleNodes = new ArrayList<DependantMetaData<RuleNode>> ();
 		this.writtenVariables = new ReadWriteInTable<RuleNode> ();
 		this.readVariables = new ReadWriteInTable<RuleNode> ();
 		this.currentRule = null;
@@ -55,8 +58,10 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	@Override
 	public void visit(AssignNode assignNode) {
 		
-		VariableType t = assignNode.getAssignVar();
+		VariableType t = assignNode.lookupVariableType(this.parentFunction.getParent());
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
+		
+		
 		
 		// Checks for read before write
 		Collection<DependantMetaData<RuleNode>> nodesReadIn = readVariables.get(t);
@@ -86,15 +91,15 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	@Override
 	public void visit(IdNode idNode) {
 		
-		VariableType variable = idNode.getVariableType();
+		VariableType variable = idNode.lookupVariableType(this.parentFunction.getParent());
 		
 		// ignore non-Local variables
-		if (!(variable instanceof Local || (idNode.getVariableType() instanceof VarietyLocal))) {
+		if (!(variable instanceof Local || (variable instanceof VarietyLocal))) {
 			return;
 		}
 		
 		// checks for read before write
-		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(idNode.getVariableType());
+		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(variable);
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
 		
 		if (nodesWrittenTo != null) {
@@ -103,7 +108,7 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 			}
 		}
 		
-		readVariables.put(idNode.getVariableType(), getCurrentMetaData());
+		readVariables.put(variable, getCurrentMetaData());
 		
 		
 		
@@ -271,6 +276,7 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	public void visit(RuleNode ruleNode) {
 
 		this.currentRule = ruleNode;
+		this.extraRuleNodes.add(new DependantMetaData<RuleNode> (ruleNode, this.parentFunction));
 		
 	}
 	
@@ -323,4 +329,7 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 		return multipleWrite;
 	}
 	
+	public ArrayList<DependantMetaData<RuleNode>> getAllRuleNodes() {
+		return extraRuleNodes;
+	}
 }

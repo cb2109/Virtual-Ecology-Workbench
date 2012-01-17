@@ -86,6 +86,10 @@ public class IdNode extends ExprNode {
 		return latex_name;
 	}
 	
+	public VariableType lookupVariableType(Catagory enclosingCategory) {
+		return enclosingCategory.checkAccessableVariableTable(name);
+	}
+	
 	public String getName() {
 		return name;
 	}
