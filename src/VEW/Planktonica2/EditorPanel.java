@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -247,11 +248,15 @@ public class EditorPanel extends JPanel implements Observer {
 		if (this.current_source == null)
 			return;
 		syntax_highlighter.clear_flags();
+		boolean scale = DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING;
 		ANTLRParser p = new ANTLRParser (syntax_highlighter.getPlainText(syntax.getText()));
 		try {
 			ConstructedASTree ct = p.getAST();
 			if (ct.getExceptions().isEmpty())
 				ct.getTree().check(controller.getCurrentlySelectedFunction().getParent(), ct);
+			else {
+				DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING = false;
+			}
 			if (ct.getExceptions().isEmpty()) {
 				if (ct.hasWarnings()) {
 					String errors = "<html><PRE>Warnings in source file:\n";
@@ -267,9 +272,11 @@ public class EditorPanel extends JPanel implements Observer {
 				errors += "</PRE></html>";
 				error_log.setText(errors);
 			}
+			
 			String latex = "\\begin{array}{lr}";
 			if (ct.getTree() != null)
 				latex += ct.getTree().generateLatex();
+			DisplayOptions.getOptions().ATTEMPT_TYPE_SCALING = scale;
 			latex += "\\end{array}";
 			preview.setVisible(true);
 			preview.update_preview(latex);
@@ -288,7 +295,8 @@ public class EditorPanel extends JPanel implements Observer {
 			ConstructedASTree ct = p.getAST();
 			if (ct == null || ct.getTree() == null)
 				return;
-			ct.getTree().check(controller.getCurrentlySelectedFunction().getParent(), ct);
+			if (!ct.hasExceptions())
+				ct.getTree().check(controller.getCurrentlySelectedFunction().getParent(), ct);
 			if (ct.getTree() != null) {
 				String latex = "\\begin{array}{lr}";
 				latex += ct.getTree().generateLatex();
@@ -626,8 +634,8 @@ class TypingListener implements KeyListener {
 			parent.hide_autocomplete();
 		}
 		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-			// Parse text and check for errors
-			parent.check();
+			parent.preview();
+			
 		} else if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE && e.getKeyCode() != KeyEvent.VK_UP
 				&& e.getKeyCode() != KeyEvent.VK_DOWN && e.getKeyCode() != KeyEvent.VK_RIGHT
 				&& e.getKeyCode() != KeyEvent.VK_LEFT) {
