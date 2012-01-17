@@ -11,11 +11,16 @@ import VEW.Planktonica2.Model.UnitChecker;
 import VEW.Planktonica2.Model.VariableType;
 import VEW.Planktonica2.Model.VarietyType;
 
+/**
+ * The AST node that represents an assignment
+ * @author David Coulden
+ *
+ */
 public class AssignNode extends RuleNode {
 
-	private IdNode identifier;
-	private ExprNode expr;
-	private VariableType assignVar;
+	private IdNode identifier; //Represents the variable being assigned to
+	private ExprNode expr; //The expression being assigned
+	private VariableType assignVar; //The variable representation of the assign variable
 	
 	public AssignNode(IdNode identifier, ExprNode expr, int line) {
 		this.line_number = line;
@@ -37,7 +42,9 @@ public class AssignNode extends RuleNode {
 			return;
 		}
 		identifier.set_units(enclosingCategory);
+		//Checks child expression
 		expr.check(enclosingCategory, enclosingTree);
+		//Checks whether units 
 		if (UnitChecker.getUnitChecker().CheckUnitCompatability(identifier.getUnits(),
 				expr.getUnits()) == 0) {
 			String warning = "Units of " + identifier.getName() + " (";
@@ -50,6 +57,7 @@ public class AssignNode extends RuleNode {
 			warning += ")";
 			enclosingTree.addWarning(warning);
 		}
+		//Checks that the assignment is correctly typed
 		checkTypeCompatibility(var.getVarType(), enclosingTree);
 		assignVar = var;
 		assignVar.setAssigned(true);

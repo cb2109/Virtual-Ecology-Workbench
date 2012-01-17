@@ -16,6 +16,7 @@ import VEW.XMLCompiler.ASTNodes.BinaryPrimitiveNode;
 import VEW.XMLCompiler.ASTNodes.BooleanBinOpNode;
 import VEW.XMLCompiler.ASTNodes.BooleanComparitorNode;
 import VEW.XMLCompiler.ASTNodes.BooleanNotOpNode;
+import VEW.XMLCompiler.ASTNodes.ChangeNode;
 import VEW.XMLCompiler.ASTNodes.CreateNode;
 import VEW.XMLCompiler.ASTNodes.IdNode;
 import VEW.XMLCompiler.ASTNodes.IfExprNode;
@@ -331,5 +332,11 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	
 	public ArrayList<DependantMetaData<RuleNode>> getAllRuleNodes() {
 		return extraRuleNodes;
+	}
+
+	
+	@Override
+	public void visit(ChangeNode changeNode) {
+		return;		
 	}
 }

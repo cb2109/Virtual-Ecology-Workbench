@@ -7,10 +7,16 @@ import VEW.Planktonica2.Model.Type;
 import VEW.Planktonica2.Model.Unit;
 import VEW.Planktonica2.Model.UnitChecker;
 
+
+/**
+ * An AST node representing a unary primitive, such as exp(...)
+ * @author David Coulden
+ *
+ */
 public class UnaryPrimNode extends ExprNode {
 
-	private UnaryPrimitive primitive;
-	private ExprNode argument;
+	private UnaryPrimitive primitive; //The type of primitive
+	private ExprNode argument; //The argument of the primitive
 	
 	public UnaryPrimNode(UnaryPrimitive primitive, ExprNode argExpr, int line) {
 		this.primitive = primitive;
@@ -113,7 +119,7 @@ public class UnaryPrimNode extends ExprNode {
 			this.units = meters;
 		}
 	}
-	
+
 
 	@Override
 	public String generateXML() {
