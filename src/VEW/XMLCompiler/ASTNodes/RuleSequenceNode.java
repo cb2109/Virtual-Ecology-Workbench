@@ -107,6 +107,7 @@ public class RuleSequenceNode extends ASTree {
 	public void acceptDependencyCheckVisitor(ASTreeVisitor visitor) {
 		
 		rule.acceptDependencyCheckVisitor(visitor);
+		
 		if(seq != null) {
 			seq.acceptDependencyCheckVisitor(visitor);
 		}

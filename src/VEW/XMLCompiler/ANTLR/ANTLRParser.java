@@ -2,9 +2,6 @@ package VEW.XMLCompiler.ANTLR;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -110,11 +107,11 @@ public class ANTLRParser {
 	public ConstructedASTree getAST () throws RecognitionException {
 		ConstructedASTree c = new CommonTreeWalker(getAntlrAST()).constructASTree();
 		
-		if (this.function != null) {
+		if (this.function != null || !c.hasExceptions()) {
 			OrderingAgent o = new OrderingAgent(function, c);
 			
 			if (!o.reorderNodes()) {
-				for (BACONCompilerException exc : extractErrors(o)) {
+				for (BACONCompilerException exc : o.extractErrors()) {
 					c.addSemanticException(exc);
 				}
 				
@@ -127,18 +124,7 @@ public class ANTLRParser {
 		return c; 
 	}
 	
-	/**
-	 * Extracts all exceptions from the ordering agent and makes a List of compiler exceptions out of it. 
-	 * 
-	 * @param o the ordering agent to extract
-	 * @return the loops and multiple write exception (on local variables) for the orderingAgent
-	 */
-	private List<BACONCompilerException> extractErrors(OrderingAgent o) {
-		List<BACONCompilerException> exceptions = new ArrayList<BACONCompilerException> ();
-		exceptions.addAll(o.getMultipleWrite());
-		exceptions.addAll(o.getFunctionLoops());
-		return exceptions;
-	}
+	
 	
 	public ConstructedASTree getPartialAST () throws RecognitionException {
 		CommonTree c = (CommonTree) runParserFromRule ().getTree();

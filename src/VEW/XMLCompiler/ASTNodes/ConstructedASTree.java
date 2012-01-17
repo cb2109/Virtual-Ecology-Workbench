@@ -38,7 +38,7 @@ public class ConstructedASTree implements HasDependency {
 	
 	public void rearrangeRules(ArrayList<RuleNode> value) {
 		
-		tree.rearrangeRules(value);
+		tree = tree.rearrangeRules(value);
 		
 	}
 	

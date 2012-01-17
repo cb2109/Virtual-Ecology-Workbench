@@ -60,6 +60,9 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	public void visit(AssignNode assignNode) {
 		
 		VariableType t = assignNode.lookupVariableType(this.parentFunction.getParent());
+		if (t == null) {
+			return;
+		}
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
 		
 		
@@ -95,7 +98,7 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 		VariableType variable = idNode.lookupVariableType(this.parentFunction.getParent());
 		
 		// ignore non-Local variables
-		if (!(variable instanceof Local || (variable instanceof VarietyLocal))) {
+		if (variable == null || !(variable instanceof Local || (variable instanceof VarietyLocal))) {
 			return;
 		}
 		

@@ -10,6 +10,7 @@ import org.antlr.runtime.RecognitionException;
 import VEW.Common.XML.XMLTag;
 import VEW.Planktonica2.Model.Function;
 import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
+import VEW.XMLCompiler.ASTNodes.CommonTreeWalker;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
@@ -30,7 +31,7 @@ public class BACONCompiler {
 		
 		ANTLRParser parser = new ANTLRParser(code);
 		try {
-			 tree = parser.getAST();
+			 tree = new CommonTreeWalker(parser.getAntlrAST()).constructASTree();;
 		} catch (RecognitionException e) {
 			e.printStackTrace();
 		}
@@ -81,7 +82,7 @@ public class BACONCompiler {
 		
 		
 		
-		return null;
+		return new ArrayList<BACONCompilerException> ();
 	}
 	
 	/**

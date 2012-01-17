@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -191,7 +192,7 @@ public class OrderingAgent {
 		
 		// add the rest of rule nodes onto the end.
 		for (DependantMetaData<RuleNode> rule : visitor.getAllRuleNodes()) {
-			if (!output.contains(rule)) {
+			if (!output.contains(rule.getNode())) {
 				output.add(rule.getNode());
 			}
 		}
@@ -304,12 +305,22 @@ public class OrderingAgent {
 			Collection<Collection<Dependency<Function>>> loops = cycleChecker.getResults();
 			for (Collection<Dependency<Function>> loop : loops) {
 				Collection<Function> funcLoop = new ArrayList<Function> (loop.size());
-				for (Dependency<Function> dep : loop) {
-					funcLoop.add(dep.getDependent1());
+				Iterator<Dependency<Function>> it = loop.iterator();
+				Dependency<Function> current = null;
+				while (it.hasNext()) {
+					current = it.next();
+					funcLoop.add(current.getDependent1());
 				}
+				
+				if (current != null) {
+					funcLoop.add(current.getDependent2());
+				}
+				
 				
 				this.loops.add(new FunctionReorderingException(funcLoop));
 			}
+			
+			return false;
 			
 		}
 
@@ -332,7 +343,7 @@ public class OrderingAgent {
 		if (retries == 0) {
 			return true;
 		}
-		while (changed) {
+		while (changed && retries > 0) {
 			changed = false;
 			for (int nodeIndex = 0; nodeIndex < order.size(); nodeIndex++) {
 				int currentIndex = nodeIndex;
@@ -414,7 +425,18 @@ public class OrderingAgent {
 		return loops;
 	}
 
-	
+	/**
+	 * Extracts all exceptions from the ordering agent and makes a List of compiler exceptions out of it. 
+	 * 
+	 * @param o the ordering agent to extract
+	 * @return the loops and multiple write exception (on local variables) for the orderingAgent
+	 */
+	public List<BACONCompilerException> extractErrors() {
+		List<BACONCompilerException> exceptions = new ArrayList<BACONCompilerException> ();
+		exceptions.addAll(getMultipleWrite());
+		exceptions.addAll(getFunctionLoops());
+		return exceptions;
+	}
 
 	
 }
