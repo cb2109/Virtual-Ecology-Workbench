@@ -469,7 +469,7 @@ public abstract class VEWController extends Observable {
 				latex += "\\end{verbatim}\n";
 			}
 			// TODO - separate get_report_latex() function?
-			ANTLRParser p = new ANTLRParser (file_text);
+			ANTLRParser p = new ANTLRParser (file_text, this.getCurrentlySelectedFunction());
 			ConstructedASTree ct = p.getAST();
 			if (ct.getTree() != null) 
 				latex += "$" + ct.getTree().generateLatex() + "$ \n\n";

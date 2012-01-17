@@ -120,6 +120,7 @@ public class UnaryPrimNode extends ExprNode {
 		}
 	}
 
+
 	@Override
 	public String generateXML() {
 		String func = "";
@@ -189,7 +190,5 @@ public class UnaryPrimNode extends ExprNode {
 		
 	}
 
-
-	
 	
 }

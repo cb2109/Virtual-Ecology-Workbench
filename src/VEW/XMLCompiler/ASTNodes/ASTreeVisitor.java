@@ -6,6 +6,8 @@ public interface ASTreeVisitor {
 	public abstract void visit(AssignNode assignNode);
 
 	public abstract void visit(IdNode idNode);
+	
+	public abstract void visit(ChangeNode changeNode);
 
 	public abstract void visit(AssignListNode assignListNode);
 

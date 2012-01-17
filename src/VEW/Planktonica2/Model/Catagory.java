@@ -1,14 +1,24 @@
 package VEW.Planktonica2.Model;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import org.antlr.runtime.RecognitionException;
 
 import VEW.Common.XML.XMLTag;
 import VEW.Planktonica2.ControllerStructure.SelectableItem;
+import VEW.XMLCompiler.ANTLR.ANTLRParser;
+import VEW.XMLCompiler.ANTLR.CompilerException;
 import VEW.XMLCompiler.ASTNodes.AmbientVariableTables;
+import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.SymbolTable;
+import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToXML {
 	
@@ -291,12 +301,25 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 	}
 	
 	public XMLTag buildToXML() throws XMLWriteBackException{
+		
 		XMLWriteBackException collectedExceptions = new XMLWriteBackException();
+		
+		OrderingAgent o = new OrderingAgent();
+		if (orderFunctions(o, collectedExceptions)) {
+			if (o.getOrdering().containsAll(functions)) {
+				functions = o.getOrdering();
+			}
+		} else if (Function.COMPILEFULLY) {
+			collectedExceptions.addCompilerException(new CompilerException(o.extractErrors()));
+		}
+		
+		
 		XMLTag newTag = new XMLTag("placeholder");
 		if (baseTag != null) {
 			newTag.addTags(baseTag.getTags());
 		}
 		newTag.addTag(new XMLTag("name", name));
+		
 		for(Function f: functions) {
 			try {
 				newTag.addTag(f.buildToXML());
@@ -319,6 +342,42 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 		return newTag;
 	}
 	
+	private boolean orderFunctions(OrderingAgent o, XMLWriteBackException collectedExceptions) {
+		
+		Map<Function, ConstructedASTree> trees = new HashMap<Function, ConstructedASTree> ();
+		for (Function f : functions) {
+			ANTLRParser comp = null;
+			try {
+				comp = new ANTLRParser(new File(f.getSource_code() + getName() + "\\" + f.getName() + ".bacon"), f);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			ConstructedASTree t = null;
+			try {
+				t = comp.getAST();
+			} catch (RecognitionException e) {
+				
+			}
+			if (t != null) {
+				if (t.hasExceptions()) {
+					return false;
+				} else {
+					trees.put(f, t);
+				}
+			}
+			
+		}
+		
+		o.setTrees(trees);
+		
+		if (trees.isEmpty()) {
+			return false;
+		}
+		
+		return o.reorderFunctions();
+		
+	}
+
 	private <V extends VariableType> void buildVariableTableToXML(XMLTag tag, SymbolTable<V> table) throws XMLWriteBackException {
 		Collection<V> vals = table.values();
 		Iterator<V> iter = vals.iterator();

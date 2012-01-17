@@ -54,10 +54,14 @@ public abstract class GraphDependencyCheck <D extends HasDependency> extends Dep
 	@Override
 	public Collection<Collection<Dependency<D>>> getResults() {
 		
-		this.result.addAll(convertRepresentatives(failedDependencies));
+		this.result = purgeRepeats(convertRepresentatives(failedDependencies));
+		
+		
 		
 		return super.getResults();
 	}
+
+	
 
 	@Override
 	public void setDependencies(Collection<Dependency<D>> dependencies) {
@@ -86,16 +90,16 @@ public abstract class GraphDependencyCheck <D extends HasDependency> extends Dep
 	
 	
 	private Collection<Collection<Dependency<D>>> convertRepresentatives(
-			Collection<Collection<Representative<D>>> failedDependencies) {
+			Collection<Collection<Representative<D>>> dependencies) {
 		
 		Collection<Collection<Dependency<D>>> result = new ArrayList<Collection<Dependency<D>>> ();
 		
-		for (Collection<Representative<D>> chain : failedDependencies) {
+		for (Collection<Representative<D>> chain : dependencies) {
 			result.add(getDependencyFromChain(chain));
 			
 		}
 		
-		return null;
+		return result;
 	}
 
 	private Collection<Dependency<D>> getDependencyFromChain(Collection<Representative<D>> chain) {
@@ -116,8 +120,55 @@ public abstract class GraphDependencyCheck <D extends HasDependency> extends Dep
 		}
 		
 		
-		return null;
+		return result;
 	}
 	
+	private Collection<Collection<Dependency<D>>> purgeRepeats(Collection<Collection<Dependency<D>>> collection) {
+		
+		Collection<Collection<Dependency<D>>> result = new ArrayList<Collection<Dependency<D>>> ();
+		
+		result.addAll(collection);
+		
+		for (Collection<Dependency<D>> loop1 : collection) {
+			
+			boolean found = false;
+			Iterator<Collection<Dependency<D>>> it = result.iterator();
+			while(it.hasNext()) {
+				Collection<Dependency<D>> loop2 = it.next();
+				if (isSameLoop(loop1, loop2)) {
+					if (found) {
+						it.remove();
+					} else {
+						found = true;
+					}
+				}
+				
+				
+			}
+		}
+		
+		
+		return result;
+	}
+
+	private boolean isSameLoop(Collection<Dependency<D>> loop1, Collection<Dependency<D>> loop2) {
+		
+		for (Dependency<D> dep1 : loop1) {
+			boolean found = false;
+			for (Dependency<D> dep2 : loop2) {
+				if (dep1.getDependent1().equals(dep2.getDependent1()) &&
+						dep1.getDependent2().equals(dep2.getDependent2())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+			
+		}
+		
+		return true;
+	}
 	
 }

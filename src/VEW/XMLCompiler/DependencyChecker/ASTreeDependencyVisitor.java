@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import VEW.Planktonica2.Model.Function;
+import VEW.Planktonica2.Model.Local;
 import VEW.Planktonica2.Model.VariableType;
+import VEW.Planktonica2.Model.VarietyLocal;
 import VEW.XMLCompiler.ASTNodes.ASTreeVisitor;
 import VEW.XMLCompiler.ASTNodes.AssignListNode;
 import VEW.XMLCompiler.ASTNodes.AssignNode;
@@ -14,6 +16,7 @@ import VEW.XMLCompiler.ASTNodes.BinaryPrimitiveNode;
 import VEW.XMLCompiler.ASTNodes.BooleanBinOpNode;
 import VEW.XMLCompiler.ASTNodes.BooleanComparitorNode;
 import VEW.XMLCompiler.ASTNodes.BooleanNotOpNode;
+import VEW.XMLCompiler.ASTNodes.ChangeNode;
 import VEW.XMLCompiler.ASTNodes.CreateNode;
 import VEW.XMLCompiler.ASTNodes.IdNode;
 import VEW.XMLCompiler.ASTNodes.IfExprNode;
@@ -34,12 +37,15 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	private ReadWriteInTable<RuleNode> writtenVariables;
 	private ReadWriteInTable<RuleNode> readVariables;
 	private Collection<Dependency<DependantMetaData <RuleNode>>> inTreeDependencies;
+	private ArrayList<DependantMetaData<RuleNode>> extraRuleNodes;
 	private RuleNode currentRule;
 	private Function parentFunction;
 	private Collection<MultipleWriteException> multipleWrite;
 	
+	
 	public ASTreeDependencyVisitor(Function enclosingCatagory) {
 		this.inTreeDependencies = new ArrayList<Dependency<DependantMetaData<RuleNode>>> ();
+		this.extraRuleNodes = new ArrayList<DependantMetaData<RuleNode>> ();
 		this.writtenVariables = new ReadWriteInTable<RuleNode> ();
 		this.readVariables = new ReadWriteInTable<RuleNode> ();
 		this.currentRule = null;
@@ -53,8 +59,13 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	@Override
 	public void visit(AssignNode assignNode) {
 		
-		VariableType t = assignNode.getAssignVar();
+		VariableType t = assignNode.lookupVariableType(this.parentFunction.getParent());
+		if (t == null) {
+			return;
+		}
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
+		
+		
 		
 		// Checks for read before write
 		Collection<DependantMetaData<RuleNode>> nodesReadIn = readVariables.get(t);
@@ -84,16 +95,24 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	@Override
 	public void visit(IdNode idNode) {
 		
+		VariableType variable = idNode.lookupVariableType(this.parentFunction.getParent());
+		
+		// ignore non-Local variables
+		if (variable == null || !(variable instanceof Local || (variable instanceof VarietyLocal))) {
+			return;
+		}
+		
 		// checks for read before write
-		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(idNode.getVariableType());
+		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(variable);
 		DependantMetaData<RuleNode> curDependant = getCurrentMetaData();
+		
 		if (nodesWrittenTo != null) {
 			for (DependantMetaData<RuleNode> r : nodesWrittenTo) {
 				inTreeDependencies.add(new Dependency<DependantMetaData<RuleNode>> (r, curDependant));
 			}
 		}
 		
-		readVariables.put(idNode.getVariableType(), getCurrentMetaData());
+		readVariables.put(variable, getCurrentMetaData());
 		
 		
 		
@@ -232,6 +251,9 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	 */
 	@Override
 	public void visit(VarHistNode varHistNode) {
+		
+		
+		
 		return;
 	}
 
@@ -258,6 +280,7 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	public void visit(RuleNode ruleNode) {
 
 		this.currentRule = ruleNode;
+		this.extraRuleNodes.add(new DependantMetaData<RuleNode> (ruleNode, this.parentFunction));
 		
 	}
 	
@@ -310,4 +333,13 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 		return multipleWrite;
 	}
 	
+	public ArrayList<DependantMetaData<RuleNode>> getAllRuleNodes() {
+		return extraRuleNodes;
+	}
+
+	
+	@Override
+	public void visit(ChangeNode changeNode) {
+		return;		
+	}
 }

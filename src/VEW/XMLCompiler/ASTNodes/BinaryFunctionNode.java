@@ -1,5 +1,7 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
+
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Chemical;
 import VEW.Planktonica2.Model.FunctionalGroup;
@@ -100,6 +102,14 @@ public class BinaryFunctionNode extends RuleNode {
 		idArg.acceptDependencyCheckVisitor(visitor);
 		expArg.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 	

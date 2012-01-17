@@ -1,5 +1,6 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
 import VEW.Planktonica2.DisplayOptions;
 import VEW.Planktonica2.Model.Catagory;
 /**
@@ -106,11 +107,51 @@ public class RuleSequenceNode extends ASTree {
 	public void acceptDependencyCheckVisitor(ASTreeVisitor visitor) {
 		
 		rule.acceptDependencyCheckVisitor(visitor);
+		
 		if(seq != null) {
 			seq.acceptDependencyCheckVisitor(visitor);
 		}
 		visitor.visit(this);
 		
+	}
+
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		ArrayList<RuleSequenceNode> nodes = new ArrayList<RuleSequenceNode> (order.size());
+		for (int i = 0; i < order.size(); i++) {
+			nodes.add(null);
+		}
+		
+		RuleSequenceNode current = this;
+		while(current != null) {
+			int pos = order.indexOf(current.getRule());
+			nodes.set(pos, current);
+			current = current.getNext();
+		}
+		
+		for (int i = 0; i < nodes.size(); i++) {
+			RuleSequenceNode cur = nodes.get(i);
+			if (i+1 < nodes.size()) {
+				cur.setRuleSequence(nodes.get(i+1));
+			} else {
+				cur.setRuleSequence(null);
+			}
+			
+		}
+		
+		return nodes.get(0);
+		
+		
+	}
+	
+	
+	public RuleSequenceNode getNext() {
+		return this.seq;
+	}
+	
+	public RuleNode getRule() {
+		return this.rule;
 	}
 	
 }

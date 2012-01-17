@@ -45,13 +45,33 @@ public class VarHistNode extends ExprNode {
 	}
 
 	
+	/**
+	 * Does not visit the variable (identifier), as the variable is referencing the previous time step
+	 */
 	@Override
 	public void acceptDependencyCheckVisitor(ASTreeVisitor visitor) {
 		
-		identifier.acceptDependencyCheckVisitor(visitor);
+		//identifier.acceptDependencyCheckVisitor(visitor);
 		expression.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
 		
 	}
 
+	public IdNode getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(IdNode identifier) {
+		this.identifier = identifier;
+	}
+
+	public ExprNode getExpression() {
+		return expression;
+	}
+
+	public void setExpression(ExprNode expression) {
+		this.expression = expression;
+	}
+
+	
 }

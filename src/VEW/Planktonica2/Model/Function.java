@@ -15,8 +15,9 @@ import java.util.List;
 import VEW.Common.XML.XMLTag;
 import VEW.XMLCompiler.ANTLR.BACONCompiler;
 import VEW.XMLCompiler.ANTLR.CompilerException;
+import VEW.XMLCompiler.DependencyChecker.HasDependency;
 
-public class Function implements BuildFromXML, BuildToXML {
+public class Function implements BuildFromXML, BuildToXML, HasDependency {
 
 	private String name;
 	
@@ -145,6 +146,21 @@ public class Function implements BuildFromXML, BuildToXML {
 		
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (super.equals(o)) {
+			return true;
+		}
+		
+		if (o instanceof Function) {
+			Function f = (Function) o;
+			return f.getName().equals(this.getName());
+		}
+		
+		return false;
+		
+	}
+	
 	private Stage getStageFromList (String name) {
 		
 		if (availableStages == null || name == null)

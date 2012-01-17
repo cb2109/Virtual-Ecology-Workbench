@@ -175,10 +175,20 @@ public class ChangeNode extends RuleNode {
 		
 		proportionExpr.acceptDependencyCheckVisitor(visitor);
 		for (Pair<BExprNode, IdNode> pair : changeStatements) {
-			pair.getFirst().acceptDependencyCheckVisitor(visitor);
+			if (pair.getFirst() != null) {
+				pair.getFirst().acceptDependencyCheckVisitor(visitor);
+			}
 			pair.getSecond().acceptDependencyCheckVisitor(visitor);
 		}
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 	

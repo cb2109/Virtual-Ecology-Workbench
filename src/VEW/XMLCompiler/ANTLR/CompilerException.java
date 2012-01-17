@@ -20,6 +20,9 @@ public class CompilerException extends Exception {
 		this.containedExceptions = containedExceptions;
 	}
 	
+	public CompilerException(List<BACONCompilerException> containedExceptions) {
+		this.containedExceptions = containedExceptions;
+	}
 
 	public List<BACONCompilerException> getContainedExceptions() {
 		return containedExceptions;
@@ -31,7 +34,7 @@ public class CompilerException extends Exception {
 	
 	
 	public String getErrorFunctionName() {
-		return errorFunction.getName();
+		return (errorFunction == null ? "all" : errorFunction.getName());
 	}
 	
 	public void setErrorCategoryName(String name) {

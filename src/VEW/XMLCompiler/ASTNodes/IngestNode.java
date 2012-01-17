@@ -1,5 +1,7 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
+
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Chemical;
 import VEW.Planktonica2.Model.Type;
@@ -96,6 +98,14 @@ public class IngestNode extends RuleNode {
 		rate.acceptDependencyCheckVisitor(visitor);
 		
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 	

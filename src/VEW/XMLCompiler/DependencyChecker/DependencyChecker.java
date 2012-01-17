@@ -19,8 +19,6 @@ public class DependencyChecker <D extends HasDependency> {
 	 */
 	public Collection<Collection<Dependency<D>>> checkDependencies() { 
 		
-				
-		
 		checks.setDependencies(dependencies);
 		
 		checks.performChecks();

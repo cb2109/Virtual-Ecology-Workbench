@@ -1,5 +1,6 @@
 package VEW.XMLCompiler.ASTNodes;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import VEW.Planktonica2.Model.Type;
@@ -25,4 +26,13 @@ public abstract class ExprNode extends ASTree{
 	public Collection<Unit> getUnits() {
 		return units;
 	}
+
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		return null;
+	}
+	
+	
+
+	
 }

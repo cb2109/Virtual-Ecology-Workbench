@@ -1,6 +1,5 @@
 package VEW.XMLCompiler.ASTNodes;
 
-
 import VEW.Planktonica2.DisplayOptions;
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.UnitChecker;
@@ -96,5 +95,7 @@ public class BinaryPrimitiveNode extends ExprNode {
 		visitor.visit(this);
 		
 	}
+
+
 
 }

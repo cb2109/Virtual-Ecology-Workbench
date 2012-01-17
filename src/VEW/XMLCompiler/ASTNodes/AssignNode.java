@@ -1,5 +1,8 @@
 package VEW.XMLCompiler.ASTNodes;
 
+
+import java.util.ArrayList;
+
 import VEW.Planktonica2.DisplayOptions;
 import VEW.Planktonica2.Model.Catagory;
 import VEW.Planktonica2.Model.Type;
@@ -110,6 +113,9 @@ public class AssignNode extends RuleNode {
 		return assignVar;
 	}
 
+	public VariableType lookupVariableType(Catagory enclosingCategory) {
+		return identifier.lookupVariableType(enclosingCategory);
+	}
 	
 	/**
 	 * Doesnt' check the IdNode identifier.
@@ -121,6 +127,14 @@ public class AssignNode extends RuleNode {
 		
 		expr.acceptDependencyCheckVisitor(visitor);
 		visitor.visit(this);
+		
+	}
+
+	
+	@Override
+	public ASTree rearrangeRules(ArrayList<RuleNode> order) {
+		
+		return null;
 		
 	}
 }

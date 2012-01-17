@@ -2,18 +2,19 @@ package VEW.XMLCompiler.ANTLR;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 
+import VEW.Planktonica2.Model.Function;
 import VEW.XMLCompiler.ANTLR.BACONLexer;
 import VEW.XMLCompiler.ANTLR.BACONParser;
 import VEW.XMLCompiler.ANTLR.BACONParser.pair_return;
 import VEW.XMLCompiler.ANTLR.BACONParser.rules_return;
 import VEW.XMLCompiler.ASTNodes.*;
+import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 /**
  * A façade infront of an ANTLR compiler that generates ASTree Nodes.
@@ -27,6 +28,7 @@ public class ANTLRParser {
 
 	private String filePath;
 	private BACONParser g;
+	private Function function;
 	
 	/**
 	 * Creates a parser to run on a given file.
@@ -56,6 +58,26 @@ public class ANTLRParser {
         g = new BACONParser(tokens);
 	}
 	
+	public ANTLRParser (File file, Function currentFunction) throws IOException {
+		this.filePath = file.getAbsolutePath();
+		
+		BACONLexer lex = new BACONLexer(new ANTLRFileStream(file.getAbsolutePath()));
+		CommonTokenStream tokens = new CommonTokenStream(lex);
+        g = new BACONParser(tokens);
+        
+        this.function = currentFunction;
+	}
+
+	public ANTLRParser (String codeToParse, Function currentFunction) {
+		this.filePath = null;
+		
+		BACONLexer lex = new BACONLexer(new ANTLRStringStream (codeToParse));
+		CommonTokenStream tokens = new CommonTokenStream(lex);
+        g = new BACONParser(tokens);
+        
+        this.function = currentFunction;
+	}
+	
 	/**
 	 * Parses and semantically checks the given input and then generates the XML.
 	 * 
@@ -64,7 +86,6 @@ public class ANTLRParser {
 	 * @throws TreeWalkerException thrown if the ASTree nodes are generated incorrectly.
 	 * @throws SemanticCheckException 
 	 */
-
 	public String generateXML () throws RecognitionException, BACONCompilerException {
 		ConstructedASTree ct = getAST();
 		ASTree t = ct.getTree();
@@ -83,9 +104,27 @@ public class ANTLRParser {
 	 * @throws RecognitionException thrown if the parser fails to parse the file.
 	 * @throws TreeWalkerException only occurs if the parser has let the incorrect input through
 	 */
-	public ConstructedASTree getAST () throws RecognitionException {		
-		return new CommonTreeWalker(getAntlrAST()).constructASTree();
+	public ConstructedASTree getAST () throws RecognitionException {
+		ConstructedASTree c = new CommonTreeWalker(getAntlrAST()).constructASTree();
+		
+		if (this.function != null || !c.hasExceptions()) {
+			OrderingAgent o = new OrderingAgent(function, c);
+			
+			if (!o.reorderNodes()) {
+				for (BACONCompilerException exc : o.extractErrors()) {
+					c.addSemanticException(exc);
+				}
+				
+				return c;
+			}
+			
+			c.rearrangeRules(o.getFunctionOrder().get(c));
+		}
+		
+		return c; 
 	}
+	
+	
 	
 	public ConstructedASTree getPartialAST () throws RecognitionException {
 		CommonTree c = (CommonTree) runParserFromRule ().getTree();

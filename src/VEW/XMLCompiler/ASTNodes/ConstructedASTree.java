@@ -36,6 +36,12 @@ public class ConstructedASTree implements HasDependency {
 		return tree;
 	}
 	
+	public void rearrangeRules(ArrayList<RuleNode> value) {
+		
+		tree = tree.rearrangeRules(value);
+		
+	}
+	
 	public List<BACONCompilerException> getExceptions() {
 		return exceptions;
 	}
@@ -103,4 +109,6 @@ public class ConstructedASTree implements HasDependency {
 	public void checkASTree(ASTreeVisitor v) {
 		this.getTree().acceptDependencyCheckVisitor(v);
 	}
+
+	
 }
