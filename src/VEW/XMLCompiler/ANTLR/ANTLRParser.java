@@ -107,7 +107,7 @@ public class ANTLRParser {
 	public ConstructedASTree getAST () throws RecognitionException {
 		ConstructedASTree c = new CommonTreeWalker(getAntlrAST()).constructASTree();
 		
-		if (this.function != null || !c.hasExceptions()) {
+		if (this.function != null && !c.hasExceptions()) {
 			OrderingAgent o = new OrderingAgent(function, c);
 			
 			if (!o.reorderNodes()) {

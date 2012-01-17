@@ -60,65 +60,10 @@ public class LoopDependencyCheck<D extends HasDependency> extends GraphDependenc
 					result.addAll(failed);
 				}
 			}
-			
+			currentChain.remove(current);
 			return (result.isEmpty() ? null : result);
 		}
 		
-		/*
-		private Collection<Collection<Representative<E>>> depthSearch(Representative<E> current,
-																	  Collection<Representative<E>> currentChain) {
-			currentChain.add(current);
-			
-			Collection<Representative<E>> cycle = checkCurrentForCycle(currentChain);
-			if (cycle != null) {
-				ArrayList<Collection<Representative<E>>> result = new ArrayList<Collection<Representative<E>>> ();
-				result.add(cycle);
-				return result;
-			}
-			
-			if (current.hasBeenVisited()) {
-				return null;
-			}
-			
-			current.setVisited(true);
-			
-			Collection<Representative<E>> children = current.getChildren();
-			
-			if (children.isEmpty()) {
-				return null;
-			}
-			
-			while (children.size() == 1) {
-				Representative<E> next = children.iterator().next();
-				
-				if (next.hasBeenVisited()) {
-					return null;
-				}
-				
-				cycle = checkCurrentForCycle(currentChain);
-				if (cycle != null) {
-					ArrayList<Collection<Representative<E>>> result = new ArrayList<Collection<Representative<E>>> ();
-					result.add(cycle);
-					return result;
-				}
-				
-				current = next;
-				current.setVisited(true);
-				currentChain.add(current);
-				
-			}
-			
-			Collection<Collection<Representative<E>>> result = new ArrayList<Collection<Representative<E>>> ();
-			for (Representative<E> child : current.getChildren()) {
-				Collection<Collection<Representative<E>>> failed = depthSearch(child, currentChain);
-				if (failed != null) {
-					result.addAll(failed);
-				}
-			}
-			
-			return (result.isEmpty() ? null : result);
-		}
-		*/
 
 		/**
 		 * 
