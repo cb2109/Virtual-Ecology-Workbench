@@ -14,6 +14,7 @@ import VEW.XMLCompiler.ANTLR.BACONParser;
 import VEW.XMLCompiler.ANTLR.BACONParser.pair_return;
 import VEW.XMLCompiler.ANTLR.BACONParser.rules_return;
 import VEW.XMLCompiler.ASTNodes.*;
+import VEW.XMLCompiler.DependencyChecker.MultipleWriteAndChangeVisitor;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 /**
@@ -108,17 +109,30 @@ public class ANTLRParser {
 		ConstructedASTree c = new CommonTreeWalker(getAntlrAST()).constructASTree();
 		
 		if (this.function != null && !c.hasExceptions()) {
-			OrderingAgent o = new OrderingAgent(function, c);
 			
+			MultipleWriteAndChangeVisitor vis = new MultipleWriteAndChangeVisitor(this.function);
+			c.checkASTree(vis);
+			
+			if (vis.hasExceptions()) {
+				for (BACONCompilerException exc : vis.getExceptions()) {
+					c.addSemanticException(exc);
+				}
+				return c;
+			}
+			
+
+			OrderingAgent o = new OrderingAgent(function, c);
+
 			if (!o.reorderNodes()) {
 				for (BACONCompilerException exc : o.extractErrors()) {
 					c.addSemanticException(exc);
 				}
-				
+
 				return c;
 			}
-			
+
 			c.rearrangeRules(o.getFunctionOrder().get(c));
+
 		}
 		
 		return c; 

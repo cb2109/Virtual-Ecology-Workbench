@@ -18,6 +18,7 @@ import VEW.XMLCompiler.ANTLR.CompilerException;
 import VEW.XMLCompiler.ASTNodes.AmbientVariableTables;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
 import VEW.XMLCompiler.ASTNodes.SymbolTable;
+import VEW.XMLCompiler.DependencyChecker.MultipleWriteAndChangeVisitor;
 import VEW.XMLCompiler.DependencyChecker.OrderingAgent;
 
 public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToXML {
@@ -320,14 +321,27 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 		}
 		newTag.addTag(new XMLTag("name", name));
 		
-		for(Function f: functions) {
-			try {
-				newTag.addTag(f.buildToXML());
+		Collection<Collection<Function>> groups = groupTreesByStage(functions);
+		for(Collection<Function> group: groups) {
+			MultipleWriteAndChangeVisitor vis = new MultipleWriteAndChangeVisitor();
+			for (Function f : group) {
+				vis.setCurrentFunction(f);
+				f.setVisitor(vis);
+				try {
+					newTag.addTag(f.buildToXML());
+				}
+				catch (XMLWriteBackException ex) {
+					collectedExceptions.addCompilerException(ex.getCompilerExceptions(),this.name);
+				}
+
+				f.setVisitor(null);
 			}
-			catch (XMLWriteBackException ex) {
-				collectedExceptions.addCompilerException(ex.getCompilerExceptions(),this.name);
+			if (vis.hasExceptions()) {
+				collectedExceptions.addCompilerException(new CompilerException(vis.getExceptions()));
 			}
 		}
+		
+		
 		if (collectedExceptions.hasExceptions()) {
 			throw collectedExceptions;
 		}
@@ -340,6 +354,30 @@ public abstract class Catagory implements SelectableItem, BuildFromXML, BuildToX
 		buildVariableTableToXML(newTag, varietyConcTable);
 		buildVariableTableToXML(newTag, varietyLocalTable);
 		return newTag;
+	}
+	
+	private Collection<Collection<Function>> groupTreesByStage(Collection<Function> functions) {
+		
+		HashMap<Stage, Collection<Function>> stageGroups =
+				new HashMap<Stage, Collection<Function>> ();
+		
+		for (Function data : functions) {
+			
+			Collection<Stage> stagesCalledIn = data.getCalledIn();
+			for (Stage s : stagesCalledIn) {
+				Collection<Function> group = stageGroups.get(s);
+				if (group == null) {
+					group = new ArrayList<Function> ();
+				}
+				
+				group.add(data);
+				stageGroups.put(s, group);
+				
+			}
+			
+		}
+		
+		return stageGroups.values();
 	}
 	
 	private boolean orderFunctions(OrderingAgent o, XMLWriteBackException collectedExceptions) {

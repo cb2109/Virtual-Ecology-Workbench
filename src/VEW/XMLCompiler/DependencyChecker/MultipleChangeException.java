@@ -19,7 +19,14 @@ public class MultipleChangeException extends BACONCompilerException {
 	
 	@Override
 	public String getError() {
-		return "";
+		
+		String s = "You have made more than one change statement in functions in the same group in: \n";
+		
+		for (Pair<ChangeNode, Function> change : changeNodes) {
+			s += "line: " + change.getFirst().getLine() + " in " + change.getSecond().getName() + "\n";
+		}
+		
+		return s;
 	}
 
 

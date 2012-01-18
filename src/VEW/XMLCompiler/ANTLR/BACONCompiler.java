@@ -9,6 +9,7 @@ import org.antlr.runtime.RecognitionException;
 
 import VEW.Common.XML.XMLTag;
 import VEW.Planktonica2.Model.Function;
+import VEW.XMLCompiler.ASTNodes.ASTreeVisitor;
 import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.CommonTreeWalker;
 import VEW.XMLCompiler.ASTNodes.ConstructedASTree;
@@ -20,6 +21,7 @@ public class BACONCompiler {
 	private Function function;
 	private String code;
 	private ConstructedASTree tree;
+	private ASTreeVisitor visitor;
 	
 	public BACONCompiler(Function function, String code) {
 		this.function = function;
@@ -27,6 +29,13 @@ public class BACONCompiler {
 		tree = null;
 	}
 	
+	public BACONCompiler(Function function, String code, ASTreeVisitor visitor) {
+		this.function = function;
+		this.code = code;
+		tree = null;
+		this.visitor = visitor;
+	}
+
 	public List<XMLTag> compile() throws CompilerException{
 		
 		ANTLRParser parser = new ANTLRParser(code);
@@ -49,6 +58,10 @@ public class BACONCompiler {
 			function.addWarnings(tree.getWarnings());
 		}
 		
+		if (this.visitor != null) {
+			tree.checkASTree(visitor);
+		}
+		
 		List<BACONCompilerException> exceptions = checkForRWDependency(tree);
 		if (!exceptions.isEmpty()) {
 			throw new CompilerException(function, exceptions);
@@ -58,7 +71,7 @@ public class BACONCompiler {
 		if (o.reorderNodes()) {
 			tree.rearrangeRules(o.getFunctionOrder().get(this.tree));
 		} else {
-			throw new CompilerException(this.function, extractErrors(o));
+			throw new CompilerException(this.function, o.extractErrors());
 		}
 		
 		
@@ -70,7 +83,7 @@ public class BACONCompiler {
 		OrderingAgent o = new OrderingAgent(function, tree);
 		
 		if (!o.reorder()) {
-			return extractErrors(o);
+			return o.extractErrors();
 			
 		} else {
 			HashMap<ConstructedASTree, ArrayList<RuleNode>> trees = o.getFunctionOrder();
@@ -85,18 +98,7 @@ public class BACONCompiler {
 		return new ArrayList<BACONCompilerException> ();
 	}
 	
-	/**
-	 * Extracts all exceptions from the ordering agent and makes a List of compiler exceptions out of it. 
-	 * 
-	 * @param o the ordering agent to extract
-	 * @return the loops and multiple write exception (on local variables) for the orderingAgent
-	 */
-	private List<BACONCompilerException> extractErrors(OrderingAgent o) {
-		List<BACONCompilerException> exceptions = new ArrayList<BACONCompilerException> ();
-		exceptions.addAll(o.getMultipleWrite());
-		exceptions.addAll(o.getFunctionLoops());
-		return exceptions;
-	}
+	
 
 	public ConstructedASTree getTree() {
 		

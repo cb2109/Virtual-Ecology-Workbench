@@ -25,14 +25,12 @@ import VEW.XMLCompiler.ASTNodes.RuleNode;
 public class OrderingAgent {
 
 	private Collection<DependantMetaData<ConstructedASTree>> trees;
-	private Collection<MultipleWriteException> multipleWrite;
 	private Collection<BACONCompilerException> loops;
 	private HashMap<ConstructedASTree, ArrayList<RuleNode>> functionOrder;
 	private ArrayList<Function> ordering;
 
 	public OrderingAgent() {
 		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
-		this.multipleWrite = new ArrayList<MultipleWriteException>();
 		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
 		this.ordering = new ArrayList<Function> ();
 		this.loops = new ArrayList<BACONCompilerException> ();
@@ -45,7 +43,6 @@ public class OrderingAgent {
 	 */
 	public OrderingAgent(Collection<DependantMetaData<ConstructedASTree>> trees) {
 		this.trees = trees;
-		this.multipleWrite = new ArrayList<MultipleWriteException>();
 		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
 		this.ordering = new ArrayList<Function> ();
 		this.loops = new ArrayList<BACONCompilerException> ();
@@ -54,7 +51,6 @@ public class OrderingAgent {
 	public OrderingAgent(Map<Function, ConstructedASTree> trees) {
 		
 		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
-		this.multipleWrite = new ArrayList<MultipleWriteException>();
 		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
 		this.ordering = new ArrayList<Function> ();
 		this.loops = new ArrayList<BACONCompilerException> ();
@@ -69,7 +65,6 @@ public class OrderingAgent {
 	public OrderingAgent(Function function, ConstructedASTree tree) {
 		
 		this.trees = new ArrayList<DependantMetaData<ConstructedASTree>> ();
-		this.multipleWrite = new ArrayList<MultipleWriteException>();
 		this.functionOrder = new HashMap<ConstructedASTree, ArrayList<RuleNode>> ();
 		this.ordering = new ArrayList<Function> ();
 		this.loops = new ArrayList<BACONCompilerException> ();
@@ -101,10 +96,6 @@ public class OrderingAgent {
 		
 		ASTreeDependencyVisitor visitor = new ASTreeDependencyVisitor(tree.getParent());
 		tree.getNode().checkASTree(visitor);
-		
-		
-		// check each tree for multiple writes and add gather all the related dependancies 
-		multipleWrite.addAll(visitor.getMultipleWrite());
 		
 		return visitor.getInTreeDependencies();
 		
@@ -269,11 +260,6 @@ public class OrderingAgent {
 		for (DependantMetaData<ConstructedASTree> tree : group) {
 			visitor.setParentFunction(tree.getParent());
 			tree.getNode().checkASTree(visitor);
-			if (!visitor.getMultipleWrite().isEmpty()) {
-				// check each tree for multiple writes and add gather all the related dependancies 
-				multipleWrite.addAll(visitor.getMultipleWrite());
-				continue;
-			}
 		}
 		
 		// figure out the dependencies between on each function.
@@ -289,7 +275,7 @@ public class OrderingAgent {
 		
 		
 		
-		return (multipleWrite.isEmpty() ? funcDepen : null);
+		return funcDepen;
 		
 	}
 	
@@ -408,10 +394,7 @@ public class OrderingAgent {
 		}
 		
 	}
-	
-	public Collection<MultipleWriteException> getMultipleWrite() {
-		return multipleWrite;
-	}
+
 
 	public HashMap<ConstructedASTree, ArrayList<RuleNode>> getFunctionOrder() {
 		return functionOrder;
@@ -433,7 +416,6 @@ public class OrderingAgent {
 	 */
 	public List<BACONCompilerException> extractErrors() {
 		List<BACONCompilerException> exceptions = new ArrayList<BACONCompilerException> ();
-		exceptions.addAll(getMultipleWrite());
 		exceptions.addAll(getFunctionLoops());
 		return exceptions;
 	}

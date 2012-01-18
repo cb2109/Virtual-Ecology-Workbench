@@ -214,8 +214,10 @@ public class EditorPanel extends JPanel implements Observer {
 	private String format_errors(ConstructedASTree ct, String errors) {
 		errors += "<font color=#FF0000>";
 		for (BACONCompilerException t : ct.getExceptions()) {
-			syntax_highlighter.flag_line(t);
-			errors += t.getError() + "\n";
+			if (t != null) {
+				syntax_highlighter.flag_line(t);
+				errors += t.getError() + "\n";
+			}
 			
 			/*if (t instanceof TreeWalkerException) {
 				TreeWalkerException twe = (TreeWalkerException) t;

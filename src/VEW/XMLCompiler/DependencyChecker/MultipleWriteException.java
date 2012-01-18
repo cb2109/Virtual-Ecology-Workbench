@@ -48,7 +48,7 @@ public class MultipleWriteException extends BACONCompilerException {
 
 	@Override
 	public String getError() {
-		String s = "You have written to the variable " + affectedVar.getName() + " multiple times on ";
+		String s = "You have written to the variable " + affectedVar.getName() + " multiple times on \n";
 		
 		for (DependantMetaData<RuleNode> rule : this.rules) {
 			s += "line: " + rule.getNode().getLine() + " in " + rule.getParent().getName() + "\n";

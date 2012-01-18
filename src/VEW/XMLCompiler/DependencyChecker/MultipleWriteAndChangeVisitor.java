@@ -1,6 +1,9 @@
 package VEW.XMLCompiler.DependencyChecker;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import VEW.Common.Pair;
@@ -9,6 +12,7 @@ import VEW.Planktonica2.Model.VariableType;
 import VEW.XMLCompiler.ASTNodes.ASTreeVisitor;
 import VEW.XMLCompiler.ASTNodes.AssignListNode;
 import VEW.XMLCompiler.ASTNodes.AssignNode;
+import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.BinOpNode;
 import VEW.XMLCompiler.ASTNodes.BinaryFunctionNode;
 import VEW.XMLCompiler.ASTNodes.BinaryPrimitiveNode;
@@ -53,6 +57,17 @@ public class MultipleWriteAndChangeVisitor implements ASTreeVisitor {
 	
 	public MultipleWriteAndChangeVisitor (Function currentFunction) {
 		this.currentFunction = currentFunction;
+		this.writtenVariables = new HashMap<VariableType, Pair<RuleNode, Function>> ();
+		this.changeStatement = null;
+		this.multipleWriteExceptions = new HashMap<VariableType, MultipleWriteException> ();
+		this.multipleChangeExceptions = null;
+	}
+	
+	/**
+	 * Sets up the multipleWriteAndChange visitor, but you must not use the visitor
+	 * without setting the function first.
+	 */
+	public MultipleWriteAndChangeVisitor () {
 		this.writtenVariables = new HashMap<VariableType, Pair<RuleNode, Function>> ();
 		this.changeStatement = null;
 		this.multipleWriteExceptions = new HashMap<VariableType, MultipleWriteException> ();
@@ -239,12 +254,30 @@ public class MultipleWriteAndChangeVisitor implements ASTreeVisitor {
 		return changeStatement;
 	}
 
-	public Map<VariableType, MultipleWriteException> getMultipleWriteExceptions() {
-		return multipleWriteExceptions;
+	public Collection<MultipleWriteException> getMultipleWriteExceptions() {
+		return multipleWriteExceptions.values();
 	}
 
 	public MultipleChangeException getMultipleChangeExceptions() {
 		return multipleChangeExceptions;
+	}
+
+	public boolean hasExceptions() {
+		return multipleChangeExceptions != null || !multipleWriteExceptions.isEmpty();
+	}
+	
+	
+	public List<BACONCompilerException> getExceptions() {
+		List<BACONCompilerException> result = new ArrayList<BACONCompilerException> ();
+		
+		for (BACONCompilerException exp : multipleWriteExceptions.values()) {
+			result.add(exp);
+		}
+		
+		result.add(multipleChangeExceptions);
+		
+		
+		return result;
 	}
 	
 	

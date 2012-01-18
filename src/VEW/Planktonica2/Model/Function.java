@@ -15,6 +15,7 @@ import java.util.List;
 import VEW.Common.XML.XMLTag;
 import VEW.XMLCompiler.ANTLR.BACONCompiler;
 import VEW.XMLCompiler.ANTLR.CompilerException;
+import VEW.XMLCompiler.ASTNodes.ASTreeVisitor;
 import VEW.XMLCompiler.DependencyChecker.HasDependency;
 
 public class Function implements BuildFromXML, BuildToXML, HasDependency {
@@ -35,6 +36,8 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 	public static boolean COMPILEFULLY = true;
 	private List<String> warnings;
 	private XMLTag baseTag;
+
+	private ASTreeVisitor visitor;
 
 	
 	public Function(Collection<Stage> stages, String file_path, Catagory parent) {
@@ -331,7 +334,7 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 	}
 	
 	private List<XMLTag> compileSource(String sourceCode) throws CompilerException {
-		BACONCompiler compiler = new BACONCompiler(this, sourceCode);
+		BACONCompiler compiler = new BACONCompiler(this, sourceCode, this.visitor);
 		return compiler.compile();
 	}
 
@@ -355,5 +358,12 @@ public class Function implements BuildFromXML, BuildToXML, HasDependency {
 	
 	public void addWarnings(List<String> warnings) {
 		this.warnings.addAll(warnings);
+	}
+
+	
+	public void setVisitor(ASTreeVisitor vis) {
+		
+		this.visitor = vis;
+		
 	}
 }

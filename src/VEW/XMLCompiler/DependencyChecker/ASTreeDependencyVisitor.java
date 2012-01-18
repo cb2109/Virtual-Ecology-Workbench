@@ -40,7 +40,6 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 	private ArrayList<DependantMetaData<RuleNode>> extraRuleNodes;
 	private RuleNode currentRule;
 	private Function parentFunction;
-	private Collection<MultipleWriteException> multipleWrite;
 	
 	
 	public ASTreeDependencyVisitor(Function enclosingCatagory) {
@@ -50,7 +49,6 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 		this.readVariables = new ReadWriteInTable<RuleNode> ();
 		this.currentRule = null;
 		this.parentFunction = enclosingCatagory;
-		this.multipleWrite = new ArrayList<MultipleWriteException> ();
 	}
 	
 	/* (non-Javadoc)
@@ -73,15 +71,6 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 			for (DependantMetaData<RuleNode> r : nodesReadIn) {
 				inTreeDependencies.add(new Dependency<DependantMetaData<RuleNode>> (curDependant, r));
 			}
-		}
-		
-		// Checks for double write
-		Collection<DependantMetaData <RuleNode>> nodesWrittenTo = writtenVariables.get(t);
-		if (nodesWrittenTo != null) {
-			for (DependantMetaData<RuleNode> r : nodesWrittenTo) {
-				multipleWrite.add(new MultipleWriteException(r, curDependant, t, "Standard double write issue."));
-			}
-			return;
 		}
 		
 		writtenVariables.put(t, getCurrentMetaData());
@@ -329,10 +318,6 @@ public class ASTreeDependencyVisitor implements ASTreeVisitor {
 		this.parentFunction = parentFunction;
 	}
 
-	public Collection<MultipleWriteException> getMultipleWrite() {
-		return multipleWrite;
-	}
-	
 	public ArrayList<DependantMetaData<RuleNode>> getAllRuleNodes() {
 		return extraRuleNodes;
 	}
