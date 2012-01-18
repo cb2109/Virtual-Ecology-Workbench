@@ -28,7 +28,7 @@ public class UnitChecker {
 		return unitchecker;
 	}
 	
-	private static void populate_equivalences() {
+	/*private static void populate_equivalences() {
 		// SI units:
 		Unit seconds = new Unit(0,"s",1);
 		Unit per_second = new Unit(0,"s",-1);
@@ -69,7 +69,7 @@ public class UnitChecker {
 		joule_equiv.add(seconds);
 		add_to_base(new UnitEquivalence(watt, 1, watt_equiv));
 		add_to_base(new UnitEquivalence(joule, 1, joule_equiv));
-	}
+	}*/
 	
 	private static boolean add_to_base(UnitEquivalence new_ue) {
 		UnitEquivalence new_ue2 = new UnitEquivalence(new_ue.getSecond(), 

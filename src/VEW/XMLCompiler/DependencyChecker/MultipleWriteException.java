@@ -1,5 +1,9 @@
 package VEW.XMLCompiler.DependencyChecker;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import VEW.Planktonica2.Model.Function;
 import VEW.Planktonica2.Model.VariableType;
 import VEW.XMLCompiler.ASTNodes.BACONCompilerException;
 import VEW.XMLCompiler.ASTNodes.RuleNode;
@@ -14,54 +18,43 @@ public class MultipleWriteException extends BACONCompilerException {
 
 	private static final long serialVersionUID = 2492870850363362822L;
 	
-	private DependantMetaData<RuleNode> rule1;
-	private DependantMetaData<RuleNode> rule2;
+	private Collection<DependantMetaData<RuleNode>> rules;
 	private VariableType affectedVar;
 	
 	public MultipleWriteException(DependantMetaData<RuleNode> firstWriteRule, DependantMetaData<RuleNode> secondWriteRule, VariableType affectedVar, String message) {
 		super();
-		this.rule1 = firstWriteRule;
-		this.rule2 = secondWriteRule;
+		this.rules = new ArrayList<DependantMetaData<RuleNode>> ();
+		rules.add(firstWriteRule);
+		rules.add(secondWriteRule);
 		this.affectedVar = affectedVar;
 	}
 	
-	public DependantMetaData<RuleNode> getFirstWriteRuleData() {
-		return this.rule1;
+	public MultipleWriteException(VariableType affectedVar, Function f1, RuleNode v1, Function f2, RuleNode v2) {
+		this.rules = new ArrayList<DependantMetaData<RuleNode>> ();
+		rules.add(new DependantMetaData<RuleNode> (v1, f1));
+		rules.add(new DependantMetaData<RuleNode> (v2, f2));
+		this.affectedVar = affectedVar;
 	}
 	
-	public DependantMetaData<RuleNode> getSecondWriteRuleData() {
-		return this.rule2;
-	}
 	
-	public RuleNode getFirstWriteRule() {
-		return this.rule1.getNode();
-	}
 	
-	public RuleNode getSecondWriteRule() {
-		return this.rule2.getNode();
-	}
-
 	public VariableType getAffectedVariable () {
 		return this.affectedVar;
 	}
+	
+	public void addRuleToException (Function func, RuleNode node) {
+		rules.add(new DependantMetaData<RuleNode> (node, func));
+	}
 
 	@Override
-	public String toString() {
+	public String getError() {
+		String s = "You have written to the variable " + affectedVar.getName() + " multiple times on ";
 		
-		String s = "You have written to the variable " + affectedVar.getName() + " multiple times in ";
-		
-		if (rule1.getParent() != rule2.getParent()) {
-			
-			s += rule1.getParent().getName() + " and " + rule2.getParent().getName() + ".\n";
-			
-		} else {
-			
-			s += rule1.getParent().getName() + ".\n";
-			
+		for (DependantMetaData<RuleNode> rule : this.rules) {
+			s += "line: " + rule.getNode().getLine() + " in " + rule.getParent().getName() + "\n";
 		}
 		
 		return s;
-		
 	}
 	
 }
